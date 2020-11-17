@@ -108,6 +108,21 @@ class SimpleUniversalOffPolicyBuffer:
                         squeeze(-2).float()
             yield batch
 
+    def get_recent_samples(self, num_samples) -> Dict[str, torch.Tensor]:
+        assert self.size >= num_samples
+        if num_samples <= self.index:
+            indices = np.arange(0, num_samples)
+        else:
+            indices = np.concatenate([np.arange(self.size - (num_samples - self.index), self.size),
+                                      np.arange(0, self.index)], axis=-1)
+        batch = {}
+        for name in self.entry_infos.keys():
+            batch[name] = self.__dict__[name].view(-1, *self.__dict__[name].shape[1:])[indices].clone().to(self.device)
+            if name in self.entry_num_classes and getattr(self, 'use_onehot_output', False):
+                batch[name] = F.one_hot(batch[name].long(), num_classes=self.entry_num_classes[name]). \
+                    squeeze(-2).float()
+        return batch
+
     def resize(self, buffer_size):
         if buffer_size == self.buffer_size:
             return

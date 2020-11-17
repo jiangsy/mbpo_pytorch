@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from stable_baselines import logger
 
-from mbpo.storages.off_policy_buffer import OffPolicyBuffer
+from mbpo.storages import SimpleUniversalOffPolicyBuffer as Buffer
 
 
 class BaseBatchedEnv(gym.Env, abc.ABC):
@@ -31,28 +31,32 @@ class BaseModelBasedEnv(gym.Env, abc.ABC):
         raise NotImplementedError
 
     def verify(self, n=2000, eps=1e-4):
-        buffer = OffPolicyBuffer(n, self.observation_space.shape, 1, self.action_space)
+        state_dim = self.observation_space.shape[0]
+        action_dim = self.action_space.shape[0]
+        datatype = {'states': {'dims': [state_dim]}, 'next_states': {'dims': [state_dim]},
+                    'actions': {'dims': [action_dim]}, 'rewards': {'dims': [1]}, 'masks': {'dims': [1]}}
+        buffer = Buffer(n, datatype)
         state = self.reset()
         for _ in range(n):
             action = self.action_space.sample()
             next_state, reward, done, _ = self.step(action)
 
-            mask = torch.tensor([0.0] if done else [1.0], dtype=torch.float32)
+            states, actions, rewards, next_states = torch.tensor([state]), torch.tensor([action]), \
+                                                    torch.tensor([reward]), torch.tensor([next_state])
 
-            buffer.insert(torch.tensor(state), torch.tensor(action), torch.tensor(reward),
-                          torch.tensor(next_state), torch.tensor(mask))
-
+            masks = torch.tensor([0.0] if done else [1.0], dtype=torch.float32)
+            buffer.insert(states=states, actions=actions, rewards=rewards, masks=masks, next_states=next_states)
             state = next_state
             if done:
                 state = self.reset()
 
         rewards_, dones_ = self.mb_step(buffer.states.numpy(), buffer.actions.numpy(), buffer.next_states.numpy())
-        diff = (buffer.rewards.numpy() - rewards_[:, np.newaxis]) * buffer.masks.numpy()
+        diff = (buffer.rewards.numpy() - rewards_) * buffer.masks.numpy()
         l_inf = np.abs(diff).max()
         logger.info('reward difference: %.6f', l_inf)
 
-        assert np.allclose(dones_, buffer.masks), 'reward model is inaccurate'
-        assert l_inf < eps, 'done model is inaccurate'
+        assert np.allclose(dones_, buffer.masks), 'done model is inaccurate'
+        assert l_inf < eps, 'reward model is inaccurate'
 
     def seed(self, seed: int = None):
         pass

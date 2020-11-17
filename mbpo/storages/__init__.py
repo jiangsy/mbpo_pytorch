@@ -1,3 +1,2 @@
-from .universal_offpolicy_buffer import UniversalOffPolicyBuffer, UniversalMultiEnvOffPolicyBuffer, \
-    SimpleUniversalOffPolicyBuffer
+from .universal_offpolicy_buffer import SimpleUniversalOffPolicyBuffer
 from .mixture_buffer import MixtureBuffer
