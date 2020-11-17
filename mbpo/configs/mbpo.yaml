@@ -1,0 +1,48 @@
+proj_name: 'MBPO'
+mf_algo: 'sac'
+proj_dir: '/home/liuxh/Documents/mbpo'
+result_dir: './result'
+save_dir: './save'
+use_cuda: True
+device: 'cuda:0' # e.g 'cpu', 'cuda', 'cuda:0'
+seed: 3
+verbose: 0
+model_load_path: ~
+buffer_load_path: ~
+save_freq: 2
+eval_freq: 1
+log_email: False
+debug: False
+
+env:
+    env_name: 'FixedHopper'
+    num_real_envs: 1
+    gamma: 0.99
+    max_episode_steps: 1000
+
+sac:
+    actor_hidden_dims: [256, 256]
+    critic_hidden_dims: [256, 256]
+    num_grad_steps: 20
+    batch_size: 256
+    target_entropy: ~
+    actor_lr: 3.0e-4
+    critic_lr: 3.0e-4
+    soft_target_tau: 5.0e-3
+
+mbpo:
+    num_total_epochs: 1000
+    dynamics_hidden_dims: [200, 200, 200, 200]
+    l2_loss_coefs: [0.000025, 0.00005, 0.000075, 0.000075, 0.0001]
+    lr: 1.0e-3
+    dynamics_batch_size: 256
+    num_dynamics_networks: 7
+    num_elite_dynamics_networks: 5
+    real_buffer_size: 1000000
+    rollout_batch_size: 100000
+    num_model_retain_epochs: 1
+    model_update_interval: 250
+    rollout_schedule: [20, 150, 1, 15]
+    max_num_epochs: ~
+    real_sample_ratio: 0.
+    num_warmup_samples: 5000

@@ -1,0 +1,36 @@
+proj_name: 'SAC'
+proj_dir: '/home/liuxh/Documents/mbpo'
+result_dir: './result'
+save_dir: './save'
+use_cuda: True
+device: 'cpu' # e.g 'cpu', 'cuda', 'cuda:0'
+seed: 3
+verbose: 0
+model_load_path: ~
+buffer_load_path: ~
+log_interval: 1
+save_interval: 10
+eval_interval: 1
+log_email: False
+debug: False
+
+env:
+    env_name: 'Walker2d-v2'
+    num_envs: 1
+    gamma: 0.99
+    max_episode_steps: 1000
+
+sac:
+    num_total_steps: 1000000
+    num_warmup_steps: 1000
+    num_epoch_steps: 1000
+    buffer_size: 200000
+    actor_hidden_dims: [256, 256]
+    critic_hidden_dims: [256, 256]
+    num_grad_steps: 1000
+    batch_size: 256
+    target_entropy: ~
+    actor_lr: 3.0e-4
+    critic_lr: 3.0e-4
+    soft_target_tau: 5.0e-3
+
