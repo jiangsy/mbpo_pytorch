@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING
 import torch
 from torch import nn as nn
 
-from mbrl.models.utils import soft_update
+from mbpo.models.utils import soft_update
 
 if TYPE_CHECKING:
-    from mbrl.models import Actor, QCritic
+    from mbpo.models import Actor, QCritic
 
 
 class SAC:

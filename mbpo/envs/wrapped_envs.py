@@ -6,15 +6,15 @@ import gym
 from gym.wrappers import TimeLimit
 import torch
 
-from mbrl.envs.virtual_env import VecVirtualEnv
-from mbrl.envs.benchmarking_envs.benchmarking_envs import make_benchmarking_env
-from mbrl.thirdparty.base_vec_env import VecEnvWrapper
-from mbrl.thirdparty.dummy_vec_env import DummyVecEnv
-from mbrl.thirdparty.subproc_vec_env import SubprocVecEnv
-from mbrl.thirdparty.vec_normalize import VecNormalize
-from mbrl.thirdparty.monitor import Monitor
+from mbpo.envs.virtual_env import VecVirtualEnv
+from mbpo.envs.benchmarking_envs.benchmarking_envs import make_benchmarking_env
+from mbpo.thirdparty.base_vec_env import VecEnvWrapper
+from mbpo.thirdparty.dummy_vec_env import DummyVecEnv
+from mbpo.thirdparty.subproc_vec_env import SubprocVecEnv
+from mbpo.thirdparty.vec_normalize import VecNormalize
+from mbpo.thirdparty.monitor import Monitor
 if TYPE_CHECKING:
-    from mbrl.models.dynamics import BaseDynamics
+    from mbpo.models.dynamics import BaseDynamics
 
 
 def make_env(env_id, seed, rank, log_dir, allow_early_resets, max_episode_steps, benchmarking=True):

@@ -7,7 +7,7 @@ import yaml
 from yaml import Loader
 import collections
 
-from mbrl.misc import logger
+from mbpo.misc import logger
 
 
 def flatten(d, parent_key='', sep='.'):

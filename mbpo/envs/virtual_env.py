@@ -6,10 +6,10 @@ import gym
 import numpy as np
 import torch
 
-from mbrl.thirdparty.base_vec_env import VecEnv
+from mbpo.thirdparty.base_vec_env import VecEnv
 if TYPE_CHECKING:
-    from mbrl.models.dynamics import BaseDynamics
-    from mbrl.envs import BaseModelBasedEnv
+    from mbpo.models.dynamics import BaseDynamics
+    from mbpo.envs import BaseModelBasedEnv
 
 
 class VecVirtualEnv(VecEnv):

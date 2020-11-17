@@ -7,11 +7,11 @@ from typing import TYPE_CHECKING
 import numpy as np
 import torch
 
-from mbrl.misc import logger
+from mbpo.misc import logger
 
 if TYPE_CHECKING:
-    from mbrl.storages import SimpleUniversalOffPolicyBuffer as Buffer
-    from mbrl.models.dynamics import EnsembleRDynamics
+    from mbpo.storages import SimpleUniversalOffPolicyBuffer as Buffer
+    from mbpo.models.dynamics import EnsembleRDynamics
 
 
 # noinspection DuplicatedCode

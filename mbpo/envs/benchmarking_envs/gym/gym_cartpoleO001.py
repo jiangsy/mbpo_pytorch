@@ -4,7 +4,7 @@ from gym import spaces
 from gym.utils import seeding
 import numpy as np
 
-from mbrl.misc import logger
+from mbpo.misc import logger
 
 
 class CartPoleEnv(gym.Env):

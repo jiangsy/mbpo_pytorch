@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from mbrl.misc.utils import merge_dicts
+from mbpo.misc.utils import merge_dicts
 
 
 class MixtureBuffer:

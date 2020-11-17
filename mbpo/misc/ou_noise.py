@@ -1,6 +1,6 @@
 import torch
 
-from mbrl.models.actor import Actor
+from mbpo.models.actor import Actor
 
 
 class OUNoise(object):

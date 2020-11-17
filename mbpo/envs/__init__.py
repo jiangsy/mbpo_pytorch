@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from stable_baselines import logger
 
-from mbrl.storages.off_policy_buffer import OffPolicyBuffer
+from mbpo.storages.off_policy_buffer import OffPolicyBuffer
 
 
 class BaseBatchedEnv(gym.Env, abc.ABC):

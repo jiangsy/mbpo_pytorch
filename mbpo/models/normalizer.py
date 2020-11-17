@@ -5,7 +5,7 @@ import torch.distributions.kl as kl
 import torch.nn as nn
 from typing import List
 
-from mbrl.misc import logger
+from mbpo.misc import logger
 
 
 class RunningNormalizer(nn.Module, ABC):

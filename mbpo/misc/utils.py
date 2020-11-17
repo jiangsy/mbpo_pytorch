@@ -6,8 +6,8 @@ import numpy as np
 import torch
 from torch.utils.tensorboard import SummaryWriter
 
-from mbrl.envs.wrapped_envs import make_vec_envs, get_vec_normalize
-from mbrl.misc import logger
+from mbpo.envs.wrapped_envs import make_vec_envs, get_vec_normalize
+from mbpo.misc import logger
 
 
 def log_and_write(logger, writer: SummaryWriter, log_infos: List, global_step: int):

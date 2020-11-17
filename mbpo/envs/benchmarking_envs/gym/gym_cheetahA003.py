@@ -6,7 +6,7 @@ import os
 
 import numpy as np
 from gym import utils
-from mbrl.envs import BaseModelBasedEnv
+from mbpo.envs import BaseModelBasedEnv
 from gym.envs.mujoco import mujoco_env
 
 

@@ -3,13 +3,14 @@ from collections import deque
 
 import torch.nn as nn
 
-from mbrl.algos import SAC
-from mbrl.configs.config import Config
-from mbrl.misc.utils import *
-from mbrl.models import Actor, QCritic
-from mbrl.storages import SimpleUniversalOffPolicyBuffer as Buffer
+from mbpo.algos import SAC
+from mbpo.configs.config import Config
+from mbpo.misc.utils import *
+from mbpo.models import Actor, QCritic
+from mbpo.storages import SimpleUniversalOffPolicyBuffer as Buffer
 
 
+# noinspection DuplicatedCode
 def main():
     config, hparam_dict = Config('sac.yaml')
     set_seed(config.seed)
@@ -31,13 +32,13 @@ def main():
     datatype = {'states': {'dims': [state_dim]}, 'next_states': {'dims': [state_dim]},
                 'actions': {'dims': [action_dim]}, 'rewards': {'dims': [1]}, 'masks': {'dims': [1]}}
 
-    actor = SquashedGaussianMLPActor(state_dim, action_dim, mf_config.actor_hidden_dims, nn.ReLU, 1.0)
+    actor = Actor(state_dim, action_space, mf_config.actor_hidden_dims, None, False, True, True)
     actor.to(device)
 
-    q_critic1 = MLPQFunction(state_dim, action_space, mf_config.critic_hidden_dims, nn.ReLU)
-    q_critic2 = MLPQFunction(state_dim, action_space, mf_config.critic_hidden_dims, nn.ReLU)
-    q_critic_target1 = MLPQFunction(state_dim, action_space, mf_config.critic_hidden_dims, nn.ReLU)
-    q_critic_target2 = MLPQFunction(state_dim, action_space, mf_config.critic_hidden_dims, nn.ReLU)
+    q_critic1 = QCritic(state_dim, action_space, mf_config.critic_hidden_dims)
+    q_critic2 = QCritic(state_dim, action_space, mf_config.critic_hidden_dims)
+    q_critic_target1 = QCritic(state_dim, action_space, mf_config.critic_hidden_dims)
+    q_critic_target2 = QCritic(state_dim, action_space, mf_config.critic_hidden_dims)
     q_critic1.to(device)
     q_critic2.to(device)
     q_critic_target1.to(device)

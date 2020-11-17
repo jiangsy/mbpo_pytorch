@@ -4,7 +4,7 @@ import numpy as np
 from gym import utils
 from gym.envs.mujoco import mujoco_env
 
-from mbrl.envs import BaseModelBasedEnv
+from mbpo.envs import BaseModelBasedEnv
 
 
 class AntEnv(mujoco_env.MujocoEnv, utils.EzPickle, BaseModelBasedEnv):

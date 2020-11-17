@@ -4,13 +4,13 @@ from collections import deque
 import numpy as np
 import torch
 
-from mbrl.algos import MBPO, SAC
-from mbrl.configs.config import Config
-from mbrl.envs.wrapped_envs import make_vec_envs, make_vec_virtual_envs
-from mbrl.misc import logger
-from mbrl.misc.utils import set_seed, get_seed, log_and_write, evaluate, commit_and_save, init_logging
-from mbrl.models import Actor, QCritic, RunningNormalizer, EnsembleRDynamics
-from mbrl.storages import SimpleUniversalOffPolicyBuffer as Buffer, MixtureBuffer
+from mbpo.algos import MBPO, SAC
+from mbpo.configs.config import Config
+from mbpo.envs.wrapped_envs import make_vec_envs, make_vec_virtual_envs
+from mbpo.misc import logger
+from mbpo.misc.utils import set_seed, get_seed, log_and_write, evaluate, commit_and_save, init_logging
+from mbpo.models import Actor, QCritic, RunningNormalizer, EnsembleRDynamics
+from mbpo.storages import SimpleUniversalOffPolicyBuffer as Buffer, MixtureBuffer
 
 
 # noinspection DuplicatedCode
@@ -27,7 +27,7 @@ def main():
     device = torch.device(config.device)
 
     real_envs = make_vec_envs(config.env.env_name, get_seed(), config.env.num_real_envs,
-                              config.env.gamma, log_dir, device,
+                              config.env.gamma, log_dir, torch.device('cpu'),
                               allow_early_resets=True, norm_reward=False, norm_obs=False, benchmarking=True,
                               max_episode_steps=config.env.max_episode_steps)
 
@@ -38,6 +38,7 @@ def main():
     datatype = {'states': {'dims': [state_dim]}, 'next_states': {'dims': [state_dim]},
                 'actions': {'dims': [action_dim]}, 'rewards': {'dims': [1]}, 'masks': {'dims': [1]}}
 
+    # normalizers for dynamics
     state_normalizer = RunningNormalizer(state_dim)
     action_normalizer = RunningNormalizer(action_dim)
     state_normalizer.to(device)

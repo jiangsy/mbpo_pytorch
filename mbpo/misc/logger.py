@@ -12,7 +12,7 @@ from colorama import Fore
 import getpass
 import re
 
-from mbrl.thirdparty.util import mpi_rank_or_zero
+from mbpo.thirdparty.util import mpi_rank_or_zero
 
 DEBUG = 10
 INFO = 20

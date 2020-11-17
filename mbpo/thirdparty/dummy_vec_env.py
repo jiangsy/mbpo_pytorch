@@ -2,8 +2,8 @@ from collections import OrderedDict
 import numpy as np
 from typing import Sequence
 
-from mbrl.thirdparty.base_vec_env import VecEnv
-from mbrl.thirdparty.util import copy_obs_dict, dict_to_obs, obs_space_info
+from mbpo.thirdparty.base_vec_env import VecEnv
+from mbpo.thirdparty.util import copy_obs_dict, dict_to_obs, obs_space_info
 
 
 class DummyVecEnv(VecEnv):

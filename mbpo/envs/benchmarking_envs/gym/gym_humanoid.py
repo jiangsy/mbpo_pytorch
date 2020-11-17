@@ -4,7 +4,7 @@ from __future__ import absolute_import
 import numpy as np
 from gym.envs.mujoco import mujoco_env
 from gym import utils
-from mbrl.envs import BaseModelBasedEnv
+from mbpo.envs import BaseModelBasedEnv
 
 
 class HumanoidEnv(mujoco_env.MujocoEnv, utils.EzPickle, BaseModelBasedEnv):

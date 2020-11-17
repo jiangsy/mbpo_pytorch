@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from mbrl.misc.distributions import FixedNormal, FixedCategorical, FixedBernoulli, TanhNormal, FixedLimitedEntNormal
+from mbpo.misc.distributions import FixedNormal, FixedCategorical, FixedBernoulli, TanhNormal, FixedLimitedEntNormal
 from .utils import init
 
 
