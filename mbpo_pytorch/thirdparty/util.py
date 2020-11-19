@@ -77,5 +77,5 @@ def mpi_rank_or_zero():
     try:
         import mpi4py
         return mpi4py.MPI.COMM_WORLD.Get_rank()
-    except ImportError:
+    except (ImportError, AttributeError) as _:
         return 0
