@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from mbpo.models.dynamics import BaseDynamics
 
 
-def make_env(env_id, seed, rank, log_dir, allow_early_resets, max_episode_steps, benchmarking=True):
+def make_env(env_id, seed, rank, log_dir, allow_early_resets, max_episode_steps):
     def _thunk():
         env = make_benchmarking_env(env_id)
         env = TimeLimit(env, max_episode_steps)
@@ -41,10 +41,9 @@ def make_vec_envs(env_name: str,
                   max_episode_steps: int = 1000,
                   norm_reward=True,
                   norm_obs=True,
-                  benchmarking=False,
                   ):
     envs = [
-        make_env(env_name, seed, i, log_dir, allow_early_resets, max_episode_steps, benchmarking)
+        make_env(env_name, seed, i, log_dir, allow_early_resets, max_episode_steps)
         for i in range(num_envs)
     ]
 

@@ -27,9 +27,8 @@ def main():
 
     device = torch.device(config.device)
 
-    real_envs = make_vec_envs(config.env.env_name, get_seed(), config.env.num_real_envs,
-                              config.env.gamma, log_dir, device, allow_early_resets=True, norm_reward=False,
-                              norm_obs=False, benchmarking=True, max_episode_steps=config.env.max_episode_steps)
+    real_envs = make_vec_envs(config.env.env_name, get_seed(), config.env.num_real_envs,  config.env.gamma,
+                              log_dir, device, allow_early_resets=True, norm_reward=False, norm_obs=False)
 
     state_dim = real_envs.observation_space.shape[0]
     action_space = real_envs.action_space
@@ -48,7 +47,8 @@ def main():
                                  state_normalizer, action_normalizer)
     dynamics.to(device)
 
-    actor = Actor(state_dim, action_space, mf_config.actor_hidden_dims, None, False, True, True)
+    actor = Actor(state_dim, action_space, mf_config.actor_hidden_dims, state_normalizer=None,
+                  use_limited_entropy=False, use_tanh_squash=True, use_state_dependent_std=True)
     actor.to(device)
 
     q_critic1 = QCritic(state_dim, action_space, mf_config.critic_hidden_dims)
@@ -66,8 +66,8 @@ def main():
                 mf_config.num_grad_steps, config.env.gamma, 1.0, mf_config.actor_lr, mf_config.critic_lr,
                 mf_config.soft_target_tau, target_entropy=target_entropy)
 
-    virt_envs = make_vec_virtual_envs(config.env.env_name, dynamics, 0, get_seed(), 0, config.env.gamma, device,
-                                      max_episode_steps=config.env.max_episode_steps, use_predicted_reward=True)
+    virt_envs = make_vec_virtual_envs(config.env.env_name, dynamics, get_seed(), 0, config.env.gamma, device,
+                                      use_predicted_reward=True)
 
     base_virtual_buffer_size = mb_config.rollout_batch_size * config.env.max_episode_steps * \
                                mb_config.num_model_retain_epochs // mb_config.model_update_interval
