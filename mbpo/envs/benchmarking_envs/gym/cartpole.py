@@ -1,12 +1,12 @@
 import logging
 import math
+
 import gym
 from gym import spaces
 from gym.utils import seeding
 import numpy as np
 
-
-logger = logging.getLogger(__name__)
+from mbpo.misc import logger
 
 
 class CartPoleEnv(gym.Env):

@@ -1,13 +1,10 @@
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
-
 import os
 
 import numpy as np
 from gym import utils
-from mbpo.envs import BaseModelBasedEnv
 from gym.envs.mujoco import mujoco_env
+
+from mbpo.envs import BaseModelBasedEnv
 
 
 class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle, BaseModelBasedEnv):

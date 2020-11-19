@@ -2,27 +2,10 @@ import abc
 import gym
 import numpy as np
 import torch
-from stable_baselines import logger
 
+
+from mbpo.misc import logger
 from mbpo.storages import SimpleUniversalOffPolicyBuffer as Buffer
-
-
-class BaseBatchedEnv(gym.Env, abc.ABC):
-    n_envs: int
-
-    @abc.abstractmethod
-    def step(self, actions):
-        pass
-
-    def reset(self):
-        return self.partial_reset(range(self.n_envs))
-
-    @abc.abstractmethod
-    def partial_reset(self, indices):
-        pass
-
-    def set_state(self, state):
-        logger.warn('`set_state` is not implemented')
 
 
 class BaseModelBasedEnv(gym.Env, abc.ABC):

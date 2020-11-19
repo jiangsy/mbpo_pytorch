@@ -1,8 +1,9 @@
+from os import path
+
 import gym
 from gym import spaces
 from gym.utils import seeding
 import numpy as np
-from os import path
 
 
 class PendulumEnv(gym.Env):

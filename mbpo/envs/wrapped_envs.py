@@ -2,12 +2,11 @@ from __future__ import annotations
 import os
 from typing import Optional, TYPE_CHECKING
 
-import gym
 from gym.wrappers import TimeLimit
 import torch
 
-from mbpo.envs.virtual_env import VecVirtualEnv
-from mbpo.envs.benchmarking_envs.benchmarking_envs import make_benchmarking_env
+from .virtual_env import VecVirtualEnv
+from .benchmarking_envs.benchmarking_envs import make_benchmarking_env
 from mbpo.thirdparty.base_vec_env import VecEnvWrapper
 from mbpo.thirdparty.dummy_vec_env import DummyVecEnv
 from mbpo.thirdparty.subproc_vec_env import SubprocVecEnv
@@ -113,6 +112,16 @@ class VecPyTorch(VecEnvWrapper):
         reward = torch.from_numpy(reward).unsqueeze(dim=1).float()
         return obs, reward, done, info
 
+    def env_method(self, method_name, *method_args, indices=None, **method_kwargs):
+        new_method_args = []
+        new_method_kwargs = {}
+        for method_arg in method_args:
+            if type(method_arg) == torch.Tensor:
+                new_method_args.append(method_arg.cpu().numpy())
+        for method_arg_k, method_arg_v in method_kwargs.items():
+            if type(method_arg_v) == torch.Tensor:
+                new_method_kwargs[method_arg_k] = method_arg_v.cpu().numpy()
+        self.venv.env_method(method_name, *new_method_args, indices, **new_method_kwargs)
 
 def get_vec_normalize(venv):
     if isinstance(venv, VecNormalize):

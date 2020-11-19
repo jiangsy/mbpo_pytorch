@@ -159,7 +159,7 @@ def main():
                     log_infos = []
                 for loss_name, loss_value in losses.items():
                     log_infos.append(('loss/' + loss_name, loss_value))
-                log_infos.extend([('time_elapsed', time_elapsed), ('/fps', num_env_steps / time_elapsed )])
+                log_infos.extend([('time_elapsed', time_elapsed), ('/fps', num_env_steps / time_elapsed)])
                 log_and_write(logger, writer, log_infos, global_step=num_env_steps)
 
         if (epoch + 1) % config.eval_freq == 0:

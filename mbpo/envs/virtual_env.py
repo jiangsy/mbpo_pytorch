@@ -1,8 +1,8 @@
 from __future__ import annotations
+from abc import ABC
 from typing import TYPE_CHECKING
 from operator import itemgetter
 
-import gym
 import numpy as np
 import torch
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from mbpo.envs import BaseModelBasedEnv
 
 
-class VecVirtualEnv(VecEnv):
+class VecVirtualEnv(VecEnv, ABC):
     def __init__(self, dynamics: BaseDynamics, env: BaseModelBasedEnv, num_envs: int, seed: int,
                  max_episode_steps=1000, use_auto_reset=True, use_predicted_reward=False):
         super(VecEnv, self).__init__()
