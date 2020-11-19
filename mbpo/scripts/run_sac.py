@@ -1,8 +1,6 @@
 import time
 from collections import deque
 
-import torch.nn as nn
-
 from mbpo.algos import SAC
 from mbpo.configs.config import Config
 from mbpo.misc.utils import *
@@ -90,10 +88,11 @@ def main():
                 and j % config.eval_interval == 0):
             episode_rewards_eval, episode_lengths_eval = \
                 evaluate(actor, config.env.env_name, get_seed(), num_episode=10, eval_log_dir=eval_log_dir,
-                     device=device, norm_reward=False, norm_obs=False)
+                         device=device, norm_reward=False, norm_obs=False)
             log_info = [('ep_rew_mean_eval', np.mean(episode_rewards_eval)),
                         ('ep_len_mean_eval', np.mean(episode_lengths_eval))]
             log_and_write(logger, writer, log_info, global_step=j)
+
 
 if __name__ == "__main__":
     main()
