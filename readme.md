@@ -9,8 +9,8 @@ Please refer to ./requirements.txt.
 
     python ./mbpo/scripts/run_mbpo.py
     
-  hyperparams in ./configs/slbo_config.yaml
+  hyperparams in ./configs/mbpo.yaml
 
 # Credits
-1. [kostrikov/pytorch-trpo](https://github.com/ikostrikov/pytorch-trpo)
-2. [facebookresearch/slbo](https://github.com/facebookresearch/slbo)
+1. [vitchyr/rlkit](https://github.com/vitchyr/rlkit)
+2. [facebookresearch/slbo](https://github.com/JannerM/mbpo)
