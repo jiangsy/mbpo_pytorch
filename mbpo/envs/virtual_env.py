@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from operator import itemgetter
 
 import gym
@@ -7,6 +7,7 @@ import numpy as np
 import torch
 
 from mbpo.thirdparty.base_vec_env import VecEnv
+
 if TYPE_CHECKING:
     from mbpo.models.dynamics import BaseDynamics
     from mbpo.envs import BaseModelBasedEnv
@@ -31,19 +32,25 @@ class VecVirtualEnv(VecEnv):
         self.env = env
         self.env.seed(seed)
 
-        self.action_lo = torch.tensor(self.action_space.low, dtype=torch.float32, device=self.device)
-        self.action_hi = torch.tensor(self.action_space.high, dtype=torch.float32, device=self.device)
+        self.action_lo_np = self.action_space.low
+        self.action_hi_np = self.action_space.high
+
+        self.action_lo_torch = torch.tensor(self.action_space.low, dtype=torch.float32, device=self.device)
+        self.action_hi_torch = torch.tensor(self.action_space.high, dtype=torch.float32, device=self.device)
 
         if num_envs:
             self.elapsed_steps = np.zeros([self.num_envs], dtype=np.int32)
             self.episode_rewards = np.zeros([self.num_envs])
             self.states = np.zeros([self.num_envs, self.observation_space.shape[0]], dtype=np.float32)
 
-    def _rescale_action(self, actions: torch.Tensor):
-        return self.action_lo + (actions + 1.) * 0.5 * (self.action_hi - self.action_lo)
+    def _rescale_action_torch(self, actions: torch.Tensor) -> torch.Tensor:
+        return self.action_lo_torch + (actions + 1.) * 0.5 * (self.action_hi_torch - self.action_lo_torch)
 
-    def step_with_states(self, states, actions, **kwargs):
-        rescaled_actions = self._rescale_action(actions)
+    def _rescale_action_np(self, actions: np.ndarray) -> np.ndarray:
+        return self.action_lo_np + (actions + 1.) * 0.5 * (self.action_hi_np - self.action_lo_np)
+
+    def step_with_states(self, states: torch.Tensor, actions: torch.Tensor, **kwargs):
+        rescaled_actions = self._rescale_action_torch(actions)
 
         with torch.no_grad():
             if self.use_predicted_reward:
@@ -54,17 +61,19 @@ class VecVirtualEnv(VecEnv):
             else:
                 next_states, rewards = itemgetter('next_states')(self.dynamics.predict(
                     states.to(self.device), actions.to(self.device), **kwargs))
-                rewards, dones = self.env.mb_step(states, rescaled_actions, next_states)
+                rewards, dones = self.env.mb_step(states.cpu().numpy(), rescaled_actions.cpu().numpy(),
+                                                  next_states.cpu().numpy())
                 rewards = torch.tensor(rewards, device=self.device, dtype=torch.float32)
-        # no timeouts and reset for step_with_states
+
+        # no timeouts and auto_reset for step_with_states
         return next_states.clone(), rewards.clone(), dones, [{} for _ in range(len(states))]
 
-    def step_async(self, actions):
+    def step_async(self, actions: np.ndarray):
         self.actions = actions
 
     def step_wait(self):
         assert self.num_envs
-        rescaled_actions = self._rescale_action(self.actions)
+        rescaled_actions = self._rescale_action_np(self.actions)
         self.elapsed_steps += 1
 
         with torch.no_grad():

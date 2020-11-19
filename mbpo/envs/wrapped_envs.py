@@ -101,7 +101,7 @@ class VecPyTorch(VecEnvWrapper):
             actions = actions.squeeze(1)
         return self.venv.step_with_states(states, actions)
 
-    def step_async(self, actions):
+    def step_async(self, actions: torch.Tensor):
         if isinstance(actions, torch.LongTensor):
             actions = actions.squeeze(1)
         actions = actions.cpu().numpy()
