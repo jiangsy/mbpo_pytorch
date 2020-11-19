@@ -1,5 +1,5 @@
 # MBPO PyTorch
-A PyTorch reimplementation of MBPO
+A PyTorch reimplementation of MBPO (When to trust your model: model-based policy optimization)
 
 # Dependency
 
