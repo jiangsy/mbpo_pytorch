@@ -1,5 +1,5 @@
 # MBPO PyTorch
-A PyTorch reimplementation of MBPO
+A PyTorch reimplementation of MBPO (When to trust your model: model-based policy optimization)
 
 # Dependency
 
@@ -9,7 +9,10 @@ Please refer to ./requirements.txt.
 
     python ./mbpo/scripts/run_mbpo.py
     
-  hyperparams in ./configs/mbpo.yaml
+    # you can also overwrite hyperparams by passing args, e.g.
+    python ./mbpo/scripts/run_mbpo.py --set seed=0 verbose=1 device="'cuda:0'" env.env_name='FixedHopper'
+
+  default hyperparams in ./configs/mbpo.yaml
 
 # Credits
 1. [vitchyr/rlkit](https://github.com/vitchyr/rlkit)
