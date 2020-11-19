@@ -2,7 +2,7 @@ from setuptools import find_packages
 from setuptools import setup
 
 setup(
-    name='mbpo',
+    name='mbpo_pytorch',
     auther='Shengyi Jiang',
     author_email='shengyi.jiang@outlook.com',
     packages=find_packages(),

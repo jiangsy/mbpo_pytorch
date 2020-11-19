@@ -7,10 +7,10 @@ Please refer to ./requirements.txt.
 
 # Usage
 
-    python ./mbpo/scripts/run_mbpo.py
+    python ./mbpo_pytorch/scripts/run_mbpo.py
     
     # you can also overwrite hyperparams by passing args, e.g.
-    python ./mbpo/scripts/run_mbpo.py --set seed=0 verbose=1 device="'cuda:0'" env.env_name='FixedHopper'
+    python ./mbpo_pytorch/scripts/run_mbpo.py --set seed=0 verbose=1 device="'cuda:0'" env.env_name='FixedHopper'
 
   default hyperparams in ./configs/mbpo.yaml
 
