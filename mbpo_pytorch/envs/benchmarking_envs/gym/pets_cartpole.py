@@ -4,8 +4,10 @@ import numpy as np
 from gym import utils
 from gym.envs.mujoco import mujoco_env
 
+from mbpo_pytorch.envs import BaseModelBasedEnv
 
-class CartpoleEnv(mujoco_env.MujocoEnv, utils.EzPickle):
+
+class CartpoleEnv(mujoco_env.MujocoEnv, utils.EzPickle, BaseModelBasedEnv):
     PENDULUM_LENGTH = 0.6
 
     def __init__(self):

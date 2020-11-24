@@ -5,8 +5,10 @@ from gym import spaces
 from gym.utils import seeding
 import numpy as np
 
+from mbpo_pytorch.envs import BaseModelBasedEnv
 
-class Continuous_MountainCarEnv(gym.Env):
+
+class Continuous_MountainCarEnv(gym.Env, BaseModelBasedEnv):
     metadata = {
         'render.modes': ['human', 'rgb_array'],
         'video.frames_per_second': 30

@@ -124,6 +124,7 @@ class VecPyTorch(VecEnvWrapper):
                 new_method_kwargs[method_arg_k] = method_arg_v.cpu().numpy()
         self.venv.env_method(method_name, *new_method_args, indices, **new_method_kwargs)
 
+
 def get_vec_normalize(venv):
     if isinstance(venv, VecNormalize):
         return venv

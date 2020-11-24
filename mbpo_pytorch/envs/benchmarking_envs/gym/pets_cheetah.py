@@ -4,8 +4,10 @@ import numpy as np
 from gym import utils
 from gym.envs.mujoco import mujoco_env
 
+from mbpo_pytorch.envs import BaseModelBasedEnv
 
-class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
+
+class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle, BaseModelBasedEnv):
 
     def __init__(self):
         self.prev_qpos = None

@@ -1,11 +1,14 @@
+from os import path
+
 import gym
 from gym import spaces
 from gym.utils import seeding
 import numpy as np
-from os import path
+
+from mbpo_pytorch.envs import BaseModelBasedEnv
 
 
-class PendulumEnv(gym.Env):
+class PendulumEnv(gym.Env, BaseModelBasedEnv):
     metadata = {
         'render.modes': ['human', 'rgb_array'],
         'video.frames_per_second': 30

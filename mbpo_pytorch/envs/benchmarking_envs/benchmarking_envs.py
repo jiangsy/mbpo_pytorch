@@ -31,7 +31,7 @@ from .gym import gym_nostopslimhumanoid
 from .gym import gym_slimhumanoid
 
 
-def make_benchmarking_env(id: str):
+def make_benchmarking_env(env_id: str):
     envs = {
         'HalfCheetah': HalfCheetahEnv,
         'Walker2D': Walker2dEnv,
@@ -64,11 +64,10 @@ def make_benchmarking_env(id: str):
         'gym_slimhumanoid': gym_slimhumanoid.HumanoidEnv,
         'gym_nostopslimhumanoid': gym_nostopslimhumanoid.HumanoidEnv,
     }
-    env = envs[id]()
+    env = envs[env_id]()
     if not hasattr(env, 'reward_range'):
         env.reward_range = (-np.inf, np.inf)
     if not hasattr(env, 'metadata'):
         env.metadata = {}
-    env.seed(np.random.randint(2**60))
     return env
 
