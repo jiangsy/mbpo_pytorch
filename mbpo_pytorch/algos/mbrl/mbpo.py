@@ -37,7 +37,7 @@ class MBPO:
         full_indices = np.arange(buffer.size)
         np.random.shuffle(full_indices)
         train_indices = full_indices[:int(ratio * buffer.size)]
-        val_indices = full_indices[:int(ratio * buffer.size):]
+        val_indices = full_indices[int(ratio * buffer.size):]
         return train_indices, val_indices
 
     def compute_loss(self, samples, use_var_loss=True, use_l2_loss=True):
