@@ -1,8 +1,7 @@
 from __future__ import annotations
-
 from itertools import count
 from operator import itemgetter
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, List
 
 import numpy as np
 import torch
@@ -17,7 +16,7 @@ if TYPE_CHECKING:
 # noinspection DuplicatedCode
 class MBPO:
     def __init__(self, dynamics: EnsembleRDynamics, batch_size: int, max_num_epochs: int,
-                 rollout_schedule, l2_loss_coefs, lr, max_grad_norm=2, verbose=0):
+                 rollout_schedule: List[int], l2_loss_coefs: List[float], lr, max_grad_norm=2, verbose=0):
         self.dynamics = dynamics
         self.epoch = 0
 
@@ -33,14 +32,14 @@ class MBPO:
         self.elite_dynamics_indices = []
         self.verbose = verbose
 
-    def split_model_buffer(self, buffer, ratio):
+    def split_model_buffer(self, buffer: Buffer, ratio: float):
         full_indices = np.arange(buffer.size)
         np.random.shuffle(full_indices)
         train_indices = full_indices[:int(ratio * buffer.size)]
         val_indices = full_indices[int(ratio * buffer.size):]
         return train_indices, val_indices
 
-    def compute_loss(self, samples, use_var_loss=True, use_l2_loss=True):
+    def compute_loss(self, samples: Dict[str, torch.Tensor], use_var_loss=True, use_l2_loss=True):
         states, actions, next_states, rewards, masks = \
             itemgetter('states', 'actions', 'next_states', 'rewards', 'masks')(samples)
 

@@ -12,6 +12,7 @@ from mbpo_pytorch.thirdparty.dummy_vec_env import DummyVecEnv
 from mbpo_pytorch.thirdparty.subproc_vec_env import SubprocVecEnv
 from mbpo_pytorch.thirdparty.vec_normalize import VecNormalize
 from mbpo_pytorch.thirdparty.monitor import Monitor
+
 if TYPE_CHECKING:
     from mbpo_pytorch.models.dynamics import BaseDynamics
 

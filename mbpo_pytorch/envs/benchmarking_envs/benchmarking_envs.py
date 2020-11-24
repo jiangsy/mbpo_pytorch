@@ -31,14 +31,6 @@ from .gym import gym_nostopslimhumanoid
 from .gym import gym_slimhumanoid
 
 
-class BaseModelBasedEnv(gym.Env):
-    @abc.abstractmethod
-    def mb_step(self, states: np.ndarray, actions: np.ndarray, next_states: np.ndarray):
-        raise NotImplementedError
-
-    def seed(self, seed: int = None):
-        pass
-
 def make_benchmarking_env(id: str):
     envs = {
         'HalfCheetah': HalfCheetahEnv,
