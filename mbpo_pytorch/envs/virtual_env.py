@@ -1,12 +1,15 @@
 from __future__ import annotations
+import abc
 from abc import ABC
 from typing import TYPE_CHECKING
 from operator import itemgetter
 
 import numpy as np
 import torch
+import gym
 
 from mbpo_pytorch.thirdparty.base_vec_env import VecEnv
+from mbpo_pytorch.storages import SimpleUniversalOffPolicyBuffer as Buffer
 
 if TYPE_CHECKING:
     from mbpo_pytorch.models.dynamics import BaseDynamics

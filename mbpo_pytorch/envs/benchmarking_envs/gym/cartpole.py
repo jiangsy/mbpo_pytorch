@@ -9,7 +9,7 @@ import numpy as np
 from mbpo_pytorch.envs.virtual_env import BaseModelBasedEnv
 
 
-class CartPoleEnv(gym.Env, BaseModelBasedEnv):
+class CartPoleEnv(BaseModelBasedEnv):
     metadata = {
         'render.modes': ['human', 'rgb_array'],
         'video.frames_per_second': 50

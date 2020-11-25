@@ -8,7 +8,7 @@ import numpy as np
 from mbpo_pytorch.envs.virtual_env import BaseModelBasedEnv
 
 
-class Continuous_MountainCarEnv(gym.Env, BaseModelBasedEnv):
+class Continuous_MountainCarEnv(BaseModelBasedEnv):
     metadata = {
         'render.modes': ['human', 'rgb_array'],
         'video.frames_per_second': 30

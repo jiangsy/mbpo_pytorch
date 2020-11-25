@@ -8,7 +8,7 @@ import numpy as np
 from mbpo_pytorch.envs.virtual_env import BaseModelBasedEnv
 
 
-class PendulumEnv(gym.Env, BaseModelBasedEnv):
+class PendulumEnv(BaseModelBasedEnv):
     metadata = {
         'render.modes': ['human', 'rgb_array'],
         'video.frames_per_second': 30
