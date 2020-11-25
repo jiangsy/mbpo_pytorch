@@ -10,12 +10,21 @@ from mbpo_pytorch.misc import logger
 
 if TYPE_CHECKING:
     from mbpo_pytorch.storages import SimpleUniversalOffPolicyBuffer as Buffer
-    from mbpo_pytorch.models.dynamics import EnsembleRDynamics
+    from mbpo_pytorch.models.dynamics import BaseDynamics
+    from mbpo_pytorch.envs.virtual_env import VecVirtualEnv
 
 
 # noinspection DuplicatedCode
+def split_model_buffer(buffer: Buffer, ratio: float):
+    full_indices = np.arange(buffer.size)
+    np.random.shuffle(full_indices)
+    train_indices = full_indices[:int(ratio * buffer.size)]
+    val_indices = full_indices[int(ratio * buffer.size):]
+    return train_indices, val_indices
+
+
 class MBPO:
-    def __init__(self, dynamics: EnsembleRDynamics, batch_size: int, max_num_epochs: int,
+    def __init__(self, dynamics: BaseDynamics, batch_size: int, max_num_epochs: int,
                  rollout_schedule: List[int], l2_loss_coefs: List[float], lr, max_grad_norm=2, verbose=0):
         self.dynamics = dynamics
         self.epoch = 0
@@ -31,13 +40,6 @@ class MBPO:
         self.dynamics_optimizer = torch.optim.Adam(self.dynamics.parameters(), lr)
         self.elite_dynamics_indices = []
         self.verbose = verbose
-
-    def split_model_buffer(self, buffer: Buffer, ratio: float):
-        full_indices = np.arange(buffer.size)
-        np.random.shuffle(full_indices)
-        train_indices = full_indices[:int(ratio * buffer.size)]
-        val_indices = full_indices[int(ratio * buffer.size):]
-        return train_indices, val_indices
 
     def compute_loss(self, samples: Dict[str, torch.Tensor], use_var_loss=True, use_l2_loss=True):
         states, actions, next_states, rewards, masks = \
@@ -67,7 +69,7 @@ class MBPO:
         else:
             return model_losses, None
 
-    def update(self, model_buffer: Buffer) -> dict:
+    def update(self, model_buffer: Buffer) -> Dict[str, float]:
         model_loss_epoch = 0.
         l2_loss_epoch = 0.
 
@@ -76,7 +78,7 @@ class MBPO:
         else:
             epoch_iter = count()
 
-        train_indices, val_indices = self.split_model_buffer(model_buffer, self.training_ratio)
+        train_indices, val_indices = split_model_buffer(model_buffer, self.training_ratio)
 
         num_epoch_after_update = 0
         num_updates = 0
@@ -130,7 +132,7 @@ class MBPO:
 
         return {'model_loss': model_loss_epoch, 'l2_loss': l2_loss_epoch}
 
-    def update_rollout_length(self, epoch):
+    def update_rollout_length(self, epoch: int):
         min_epoch, max_epoch, min_length, max_length = self.rollout_schedule
         if epoch <= min_epoch:
             y = min_length
@@ -142,7 +144,7 @@ class MBPO:
             logger.log('[ Model Rollout ] Max rollout length {} -> {} '.format(self.num_rollout_steps, int(y)))
         self.num_rollout_steps = int(y)
 
-    def collect_data(self, virtual_envs, policy_buffer, initial_states, actor):
+    def collect_data(self, virtual_envs: VecVirtualEnv, policy_buffer: Buffer, initial_states: torch.Tensor, actor):
         states = initial_states
         batch_size = initial_states.shape[0]
         num_total_samples = 0

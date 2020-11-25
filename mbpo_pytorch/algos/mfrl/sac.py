@@ -1,7 +1,6 @@
 from __future__ import annotations
-
 from operator import itemgetter
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 import torch
 from torch import nn as nn
@@ -10,6 +9,7 @@ from mbpo_pytorch.models.utils import soft_update
 
 if TYPE_CHECKING:
     from mbpo_pytorch.models import Actor, QCritic
+    from mbpo_pytorch.storages import SimpleUniversalOffPolicyBuffer as Buffer
 
 
 class SAC:
@@ -63,7 +63,7 @@ class SAC:
         self.total_num_updates = 0
         self._need_to_update_eval_statistics = True
 
-    def update(self, policy_buffer) -> dict:
+    def update(self, policy_buffer: Buffer) -> Dict[str, float]:
 
         data_generator = policy_buffer.get_batch_generator_inf(self.batch_size)
 
