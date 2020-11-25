@@ -15,7 +15,7 @@ from .utils import MLP, init
 
 class BaseDynamics(nn.Module, ABC):
     @abstractmethod
-    def predict(self, states, actions, **kwargs):
+    def predict(self, states, actions, **kwargs) -> Dict[str, torch.Tensor]:
         pass
 
 
@@ -42,7 +42,8 @@ class Dynamics(BaseDynamics, ABC):
         return next_states
 
     def predict(self, states, actions, **kwargs):
-        return self.forward(states, actions)
+        next_states = self.forward(states, actions)
+        return {'next_states': next_states}
 
 
 class RDynamics(BaseDynamics, ABC):
@@ -69,7 +70,8 @@ class RDynamics(BaseDynamics, ABC):
         return {'diff_states': diff_states, 'rewards': rewards}
 
     def predict(self, states, actions, **kwargs):
-        return self.forward(states, actions)
+        diff_states, rewards = itemgetter('diff_states', 'rewards')(self.forward(states, actions))
+        return {'next_states': states + diff_states, 'rewards': rewards}
 
     def compute_l2_loss(self, l2_loss_coefs: Union[float, List[float]]):
         weight_norms = []
@@ -79,7 +81,6 @@ class RDynamics(BaseDynamics, ABC):
         weight_norms = torch.stack(weight_norms, dim=0)
         weight_decay = (torch.tensor(l2_loss_coefs, device=weight_norms.device) * weight_norms).sum()
         return weight_decay
-
 
 
 class EnsembleRDynamics(BaseDynamics, ABC):
@@ -189,6 +190,14 @@ class EnsembleRDynamics(BaseDynamics, ABC):
                                                diff_state_logvars[indices, np.arange(batch_size)]
         reward_means, reward_logvars = reward_means[indices, np.arange(batch_size)], \
                                        reward_logvars[indices, np.arange(batch_size)]
+
+        diff_state_logvars = self.max_state_logvar -\
+                                       F.softplus(self.max_state_logvar - diff_state_logvars)
+        diff_state_logvars = self.min_state_logvar + \
+                                       F.softplus(diff_state_logvars - self.min_state_logvar)
+        reward_logvars = self.max_reward_logvar - F.softplus(self.max_reward_logvar - reward_logvars)
+        reward_logvars = self.min_reward_logvar + F.softplus(reward_logvars - self.min_reward_logvar)
+
         if deterministic:
             next_state_means = states + diff_state_means
             return {'next_states': next_state_means, 'rewards': reward_means}
@@ -222,3 +231,5 @@ class EnsembleRDynamics(BaseDynamics, ABC):
             network.load_state_dict(state_dict)
             best_epochs.append(epoch)
         return best_epochs
+
+
