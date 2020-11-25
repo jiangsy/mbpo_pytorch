@@ -5,7 +5,7 @@ from gym import spaces
 from gym.utils import seeding
 import numpy as np
 
-from mbpo_pytorch.envs import BaseModelBasedEnv
+from mbpo_pytorch.envs.virtual_env import BaseModelBasedEnv
 
 
 class CartPoleEnv(gym.Env, BaseModelBasedEnv):

@@ -2,7 +2,7 @@ import numpy as np
 from gym import utils
 from gym.envs.mujoco import mujoco_env
 
-from mbpo_pytorch.envs import BaseModelBasedEnv
+from mbpo_pytorch.envs.virtual_env import BaseModelBasedEnv
 
 
 class ReacherEnv(mujoco_env.MujocoEnv, utils.EzPickle, BaseModelBasedEnv):

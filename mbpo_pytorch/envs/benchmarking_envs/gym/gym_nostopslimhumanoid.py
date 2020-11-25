@@ -2,7 +2,7 @@ import numpy as np
 from gym.envs.mujoco import mujoco_env
 from gym import utils
 
-from mbpo_pytorch.envs import BaseModelBasedEnv
+from mbpo_pytorch.envs.virtual_env import BaseModelBasedEnv
 
 
 class HumanoidEnv(mujoco_env.MujocoEnv, utils.EzPickle, BaseModelBasedEnv):
