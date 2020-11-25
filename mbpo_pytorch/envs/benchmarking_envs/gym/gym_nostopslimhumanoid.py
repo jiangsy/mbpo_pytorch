@@ -76,5 +76,4 @@ class HumanoidEnv(mujoco_env.MujocoEnv, utils.EzPickle, BaseModelBasedEnv):
         rewards = - self.cost_np_vec(states, actions, next_states)
         return rewards, np.zeros_like(rewards, dtype=np.bool)
 
-    def verify(self):
-        pass
+

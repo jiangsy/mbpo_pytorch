@@ -1,5 +1,4 @@
 import math
-import gym
 from gym import spaces
 from gym.utils import seeding
 import numpy as np
@@ -149,5 +148,4 @@ class CartPoleEnv(BaseModelBasedEnv):
         rewards = - self.cost_np_vec(states, actions, next_states)
         return rewards, np.zeros_like(rewards, dtype=np.bool)
 
-    def verify(self):
-        pass
+

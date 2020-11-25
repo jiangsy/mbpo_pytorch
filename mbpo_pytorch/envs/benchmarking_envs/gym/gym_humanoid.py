@@ -84,5 +84,4 @@ class HumanoidEnv(mujoco_env.MujocoEnv, utils.EzPickle, BaseModelBasedEnv):
         done = np.logical_or((height > 2.0), (height < 1.0))
         return rewards, done
 
-    def verify(self):
-        pass
+

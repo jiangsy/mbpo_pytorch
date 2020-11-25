@@ -148,7 +148,3 @@ class SAC:
         return {'policy_loss': policy_loss_epoch, 'qf1_loss': qf1_loss_epoch,
                 'qf2_loss': qf2_loss_epoch, 'alpha_loss': alpha_loss_epoch}
 
-
-
-
-

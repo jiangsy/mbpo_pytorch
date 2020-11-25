@@ -70,9 +70,6 @@ class Walker2dEnv(mujoco_env.MujocoEnv, utils.EzPickle, BaseModelBasedEnv):
         reward = reward_run + reward_ctrl + reward_height + alive_reward
         return -reward
 
-    def verify(self):
-        pass
-
     def mb_step(self, states, actions, next_states):
         if getattr(self, 'action_space', None):
             actions = np.clip(actions, self.action_space.low,

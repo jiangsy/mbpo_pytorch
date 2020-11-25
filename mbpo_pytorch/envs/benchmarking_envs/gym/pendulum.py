@@ -1,6 +1,5 @@
 from os import path
 
-import gym
 from gym import spaces
 from gym.utils import seeding
 import numpy as np
@@ -130,8 +129,6 @@ class PendulumEnv(BaseModelBasedEnv):
         u = np.clip(acts[:, 0], -self.max_torque, self.max_torque)
         costs = y + .1 * np.abs(x) + .1 * (thetadot ** 2) + .001 * (u ** 2)
         return costs
-
-
 
 def angle_normalize(x):
     return (((x + np.pi) % (2 * np.pi)) - np.pi)

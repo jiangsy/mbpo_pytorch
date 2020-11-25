@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.distributions import Normal
 
 from .initializer import truncated_norm_init
 from .normalizer import RunningNormalizer
@@ -80,6 +81,7 @@ class RDynamics(BaseDynamics, ABC):
         return weight_decay
 
 
+
 class EnsembleRDynamics(BaseDynamics, ABC):
     def __init__(self,  state_dim: int, action_dim: int, reward_dim: int, hidden_dims: List[int],
                  num_networks, num_elite_networks, state_normalizer=None, action_normalizer=None):
@@ -106,7 +108,7 @@ class EnsembleRDynamics(BaseDynamics, ABC):
             return None
         self.register_backward_hook(backward_hook_fn)
 
-        self.best_snapshots = [(np.inf, 0, None) for _ in self.networks]
+        self.best_snapshots = [(None, 0, None) for _ in self.networks]
 
     def load(self, load_path):
         pass
@@ -167,13 +169,17 @@ class EnsembleRDynamics(BaseDynamics, ABC):
         l2_losses = [network.compute_l2_loss(l2_loss_coefs) for network in self.networks]
         return torch.stack(l2_losses, dim=0)
 
-    def update_elite_indices(self, losses: torch.Tensor):
+    def update_elite_indices(self, losses: torch.Tensor) -> np.ndarray:
         assert losses.ndim == 1 and losses.shape[0] == self.num_networks
-        self.elite_indices = torch.argsort(losses)[:self.num_elite_networks].cpu().numpy()
+        elite_indices = torch.argsort(losses)[:self.num_elite_networks].cpu().numpy()
+        self.elite_indices = elite_indices.copy()
+        return elite_indices
 
-    def predict(self, states, actions, deterministic=False):
+    def predict(self, states, actions, deterministic=False) -> Dict[str, torch.Tensor]:
         assert self.elite_indices is not None
         batch_size = states.shape[0]
+
+        # only use elite networks for prediction
         indices = np.random.choice(self.elite_indices, batch_size)
         diff_state_means, diff_state_logvars, reward_means, reward_logvars = \
             itemgetter('diff_state_means', 'diff_state_logvars', 'reward_means', 'reward_logvars')\
@@ -187,27 +193,28 @@ class EnsembleRDynamics(BaseDynamics, ABC):
             next_state_means = states + diff_state_means
             return {'next_states': next_state_means, 'rewards': reward_means}
         else:
-            diff_state_dists = torch.distributions.Normal(diff_state_means, diff_state_logvars.exp().sqrt())
-            rewards_dists = torch.distributions.Normal(reward_means, reward_logvars.exp().sqrt())
+            diff_state_dists = Normal(diff_state_means, diff_state_logvars.exp().sqrt())
+            rewards_dists = Normal(reward_means, reward_logvars.exp().sqrt())
             diff_states = diff_state_dists.sample()
             rewards = rewards_dists.sample()
             next_states = states + diff_states
             return {'next_states': next_states, 'rewards': rewards}
 
     def update_best_snapshots(self, losses, epoch):
-        assert losses.ndim == 1 and losses.shape[0] == self.num_networks and torch.all(losses.isfinite()).item()
+        # assert losses.ndim == 1 and losses.shape[0] == self.num_networks and torch.all(losses.isfinite()).item()
         updated = False
         for index, (loss, snapshot) in enumerate(zip(losses, self.best_snapshots)):
             loss = loss.item()
             best_loss = snapshot[0]
-            improvement_ratio = (best_loss - loss) / best_loss
-            if np.isinf(best_loss) or improvement_ratio > 0.01:
+            if best_loss is not None:
+                improvement_ratio = (best_loss - loss) / best_loss
+            if (best_loss is None) or improvement_ratio > 0.01:
                 self.best_snapshots[index] = (loss, epoch, self.networks[index].state_dict())
                 updated = True
         return updated
 
     def reset_best_snapshots(self):
-        self.best_snapshots = [(np.inf, 0, None) for _ in self.networks]
+        self.best_snapshots = [(None, 0, None) for _ in self.networks]
 
     def load_best_snapshots(self):
         best_epochs = []

@@ -55,15 +55,6 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle, BaseModelBasedEnv):
         reward = reward_run + reward_ctrl
         return -reward
 
-    def cost_tf_vec(self, obs, acts, next_obs):
-        raise NotImplementedError
-        """
-        reward_ctrl = -0.1 * tf.reduce_sum(tf.square(acts), axis=1)
-        reward_run = next_obs[:, 0]
-        reward = reward_run + reward_ctrl
-        return -reward
-        """
-
     def mb_step(self, states, actions, next_states):
         # returns rewards and dones
         # forward rewards are calculated based on states, instead of next_states as in original SLBO envs
@@ -72,6 +63,3 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle, BaseModelBasedEnv):
                               self.action_space.high)
         rewards = - self.cost_np_vec(states, actions, next_states)
         return rewards, np.zeros_like(rewards, dtype=np.bool)
-
-    def verify(self):
-        pass

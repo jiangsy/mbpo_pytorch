@@ -133,9 +133,5 @@ class PendulumEnv(BaseModelBasedEnv):
         rewards = - self.cost_np_vec(states, actions, next_states)
         return rewards, np.zeros_like(rewards, dtype=np.bool)
 
-    def verify(self):
-        pass
-
-
 def angle_normalize(x):
     return (((x + np.pi) % (2 * np.pi)) - np.pi)
