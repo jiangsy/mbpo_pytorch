@@ -9,8 +9,9 @@ seed: 3
 verbose: 0
 model_load_path: ~
 buffer_load_path: ~
-save_freq: 2
-eval_freq: 1
+save_interval: 2
+eval_interval: 1
+log_interval: 250
 log_email: False
 debug: False
 

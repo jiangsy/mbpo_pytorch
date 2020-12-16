@@ -27,7 +27,7 @@ def main():
 
     device = torch.device(config.device)
 
-    real_envs = make_vec_envs(config.env.env_name, get_seed(), config.env.num_real_envs,  config.env.gamma,
+    real_envs = make_vec_envs(config.env.env_name, get_seed(), config.env.num_real_envs, config.env.gamma,
                               log_dir, device, allow_early_resets=True, norm_reward=False, norm_obs=False)
 
     state_dim = real_envs.observation_space.shape[0]
@@ -98,7 +98,8 @@ def main():
     real_episode_lengths = deque(maxlen=30)
 
     for _ in range(mb_config.num_warmup_samples):
-        real_actions = torch.tensor([real_envs.action_space.sample() for _ in range(config.env.num_real_envs)]).to(device)
+        real_actions = torch.tensor([real_envs.action_space.sample() for _ in range(config.env.num_real_envs)]).to(
+            device)
         real_next_states, real_rewards, real_dones, real_infos = real_envs.step(real_actions)
         real_masks = torch.tensor([[0.0] if done else [1.0] for done in real_dones], dtype=torch.float32)
         real_buffer.insert(states=real_states, actions=real_actions, rewards=real_rewards, masks=real_masks,
@@ -108,7 +109,7 @@ def main():
         real_episode_rewards.extend([info['episode']['r'] for info in real_infos if 'episode' in info])
         real_episode_lengths.extend([info['episode']['l'] for info in real_infos if 'episode' in info])
 
-    recent_states, recent_actions = itemgetter('states', 'actions')\
+    recent_states, recent_actions = itemgetter('states', 'actions') \
         (real_buffer.get_recent_samples(mb_config.num_warmup_samples - mb_config.model_update_interval))
 
     state_normalizer.update(recent_states)
@@ -149,24 +150,23 @@ def main():
 
             losses.update(agent.update(policy_buffer))
 
-            if i % 50 == 0:
+            if i % config.log_interval == 0:
                 time_elapsed = time.time() - start
                 num_env_steps = epoch * config.env.max_episode_steps + i
+                log_infos = [('time_elapsed', time_elapsed), ('/fps', num_env_steps / time_elapsed)]
+
                 if len(real_episode_rewards) > 0:
-                    log_infos = [('perf/ep_rew_real', np.mean(real_episode_rewards)),
-                                 ('perf/ep_len_real', np.mean(real_episode_lengths))]
-                else:
-                    log_infos = []
+                    log_infos.extend([('perf/ep_rew_real', np.mean(real_episode_rewards)),
+                                      ('perf/ep_len_real', np.mean(real_episode_lengths))])
                 for loss_name, loss_value in losses.items():
                     log_infos.append(('loss/' + loss_name, loss_value))
-                log_infos.extend([('time_elapsed', time_elapsed), ('/fps', num_env_steps / time_elapsed)])
                 log_and_write(logger, writer, log_infos, global_step=num_env_steps)
 
-        if (epoch + 1) % config.eval_freq == 0:
+        if (epoch + 1) % config.eval_interval == 0:
             episode_rewards_real_eval, episode_lengths_real_eval = \
-                evaluate(actor, config.env.env_name, get_seed(), 10, None, device,  norm_reward=False, norm_obs=False)
+                evaluate(actor, config.env.env_name, get_seed(), 10, None, device, norm_reward=False, norm_obs=False)
             log_infos = [('perf/ep_rew_real_eval', np.mean(episode_rewards_real_eval)),
-                        ('perf/ep_len_real_eval', np.mean(episode_lengths_real_eval))]
+                         ('perf/ep_len_real_eval', np.mean(episode_lengths_real_eval))]
             log_and_write(logger, writer, log_infos, global_step=(epoch + 1) * config.env.max_episode_steps)
 
 
