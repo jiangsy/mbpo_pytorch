@@ -191,13 +191,6 @@ class EnsembleRDynamics(BaseDynamics, ABC):
         reward_means, reward_logvars = reward_means[indices, np.arange(batch_size)], \
                                        reward_logvars[indices, np.arange(batch_size)]
 
-        diff_state_logvars = self.max_state_logvar -\
-                                       F.softplus(self.max_state_logvar - diff_state_logvars)
-        diff_state_logvars = self.min_state_logvar + \
-                                       F.softplus(diff_state_logvars - self.min_state_logvar)
-        reward_logvars = self.max_reward_logvar - F.softplus(self.max_reward_logvar - reward_logvars)
-        reward_logvars = self.min_reward_logvar + F.softplus(reward_logvars - self.min_reward_logvar)
-
         if deterministic:
             next_state_means = states + diff_state_means
             return {'next_states': next_state_means, 'rewards': reward_means}
