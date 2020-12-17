@@ -6,7 +6,6 @@ setup(
     auther='Shengyi Jiang',
     author_email='shengyi.jiang@outlook.com',
     packages=find_packages(),
-    package_data={},
     install_requires=[
         'torch>=1.4.0',
         'gym>=0.17.0',
@@ -17,4 +16,9 @@ setup(
         'pyyaml',
         'colorama',
         'tensorboard>=1.15.0'
-    ])
+    ],
+    package_data={
+        # include default config files and env data files
+        "": ["*.yaml", "*.xml"],
+    }
+)
