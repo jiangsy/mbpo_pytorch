@@ -72,14 +72,16 @@ class SimpleUniversalOffPolicyBuffer:
 
     def load(self, load_path):
         buffer_infos = torch.load(load_path)
-        self.index, self.size, self.entry_infos, self.entry_num_classes = \
+        self.index, self.size, entry_infos, self.entry_num_classes = \
             itemgetter('index', 'size', 'entry_infos', 'entry_num_classes')(buffer_infos)
-        buffer_size = []
+        assert entry_infos == self.entry_infos, logger.error('loaded entries: {}\nbuffer entries: {}'.
+                                                             format(entry_infos, self.entry_infos))
+        sizes = []
         for name in self.entry_infos:
             self.__dict__[name] = buffer_infos[name]
-            buffer_size.append(buffer_infos[name].shape[0])
-        assert len(set(buffer_size)) == 1
-        self.resize(buffer_size[0])
+            sizes.append(buffer_infos[name].shape[0])
+        assert len(set(sizes)) == 1 and list(set(sizes))[0] == self.size
+        self.resize(self.buffer_size)
 
     def get_batch_generator_inf(self, batch_size: Optional[int], ranges=None) -> Generator:
         ranges = range(self.size) if ranges is None else ranges

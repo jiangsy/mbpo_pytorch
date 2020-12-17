@@ -87,10 +87,13 @@ def main():
     else:
         policy_buffer = virtual_buffer
 
-    if config.model_load_path is not None:
+    assert not ((config.model_load_path is None) ^ (config.buffer_load_path is None)), 'Partial loading may cause bugs'
+
+    if config.model_load_path:
         state_dicts = torch.load(config.model_load_path)
         dynamics_sd, actor_sd, q_critic1_sd, q_critic2_sd, q_critic_target1_sd, q_critic_target2_sd = \
-            itemgetter('dynamics', 'actor', 'q_critic1', 'q_critic2', 'q_critic_target1', 'q_critic_target2')(state_dicts)
+            itemgetter('dynamics', 'actor', 'q_critic1', 'q_critic2', 'q_critic_target1', 'q_critic_target2')(
+                state_dicts)
         dynamics.load_state_dict(dynamics_sd)
         actor.load_state_dict(actor_sd)
         q_critic1.load_state_dict(q_critic1_sd)
@@ -98,7 +101,7 @@ def main():
         q_critic_target1.load_state_dict(q_critic_target1_sd)
         q_critic_target2.load_state_dict(q_critic_target2_sd)
 
-    if config.buffer_load_path is not None:
+    if config.buffer_load_path:
         # virtual buffer does not need loading
         real_buffer.load(config.buffer_load_path)
 
@@ -181,9 +184,9 @@ def main():
 
         if (epoch + 1) % config.save_interval == 0:
             state_dicts = {'dynamics': dynamics.state_dict(), 'actor': actor.state_dict(),
-                           'q_critic1': q_critic1.state_dict(),  'q_critic2': q_critic2.state_dict(),
+                           'q_critic1': q_critic1.state_dict(), 'q_critic2': q_critic2.state_dict(),
                            'q_critic_target1': q_critic_target1.state_dict(),
-                           'q_critic_target2': q_critic_target2.state_dict() }
+                           'q_critic_target2': q_critic_target2.state_dict()}
             torch.save(state_dicts, save_dir + '/model_state_dicts.pt')
             real_buffer.save(save_dir + '/real_buffer.pt')
 
