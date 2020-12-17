@@ -16,4 +16,5 @@ Please refer to ./requirements.txt.
 
 # Credits
 1. [vitchyr/rlkit](https://github.com/vitchyr/rlkit)
-2. [facebookresearch/slbo](https://github.com/JannerM/mbpo)
+2. [JannerM/mbpo](https://github.com/JannerM/mbpo)
+3. [WilsonWangTHU/mbbl](https://github.com/WilsonWangTHU/mbbl)
