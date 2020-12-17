@@ -7,5 +7,5 @@ import torch
 
 
 from mbpo_pytorch.misc import logger
-from mbpo_pytorch.storages import SimpleUniversalOffPolicyBuffer as Buffer
+from mbpo_pytorch.storages import SimpleUniversalBuffer as Buffer
 

@@ -5,7 +5,7 @@ from mbpo_pytorch.algos import SAC
 from mbpo_pytorch.configs.config import Config
 from mbpo_pytorch.misc.utils import *
 from mbpo_pytorch.models import Actor, QCritic
-from mbpo_pytorch.storages import SimpleUniversalOffPolicyBuffer as Buffer
+from mbpo_pytorch.storages import SimpleUniversalBuffer as Buffer
 
 
 # noinspection DuplicatedCode

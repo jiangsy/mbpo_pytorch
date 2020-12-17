@@ -9,7 +9,7 @@ from mbpo_pytorch.models.utils import soft_update
 
 if TYPE_CHECKING:
     from mbpo_pytorch.models import Actor, QCritic
-    from mbpo_pytorch.storages import SimpleUniversalOffPolicyBuffer as Buffer
+    from mbpo_pytorch.storages import SimpleUniversalBuffer as Buffer
 
 
 class SAC:

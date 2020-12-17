@@ -9,7 +9,7 @@ import torch
 import gym
 
 from mbpo_pytorch.thirdparty.base_vec_env import VecEnv
-from mbpo_pytorch.storages import SimpleUniversalOffPolicyBuffer as Buffer
+from mbpo_pytorch.storages import SimpleUniversalBuffer as Buffer
 
 if TYPE_CHECKING:
     from mbpo_pytorch.models.dynamics import BaseDynamics

@@ -9,7 +9,7 @@ import torch
 from mbpo_pytorch.misc import logger
 
 if TYPE_CHECKING:
-    from mbpo_pytorch.storages import SimpleUniversalOffPolicyBuffer as Buffer
+    from mbpo_pytorch.storages import SimpleUniversalBuffer as Buffer
     from mbpo_pytorch.models.dynamics import BaseDynamics
     from mbpo_pytorch.envs.virtual_env import VecVirtualEnv
 

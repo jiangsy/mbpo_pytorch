@@ -11,7 +11,7 @@ from mbpo_pytorch.misc import logger
 
 
 # noinspection DuplicatedCode
-class SimpleUniversalOffPolicyBuffer:
+class SimpleUniversalBuffer:
     def __init__(self, buffer_size: int,
                  entry_dict: Dict[str, dict], **kwargs):
         self.entry_infos = entry_dict.copy()
@@ -60,7 +60,7 @@ class SimpleUniversalOffPolicyBuffer:
             self._insert_sequence(name, values[:self.buffer_size - index], index)
             self._insert_sequence(name, values[self.buffer_size - index:], 0)
 
-    def add_buffer(self, buffer: SimpleUniversalOffPolicyBuffer):
+    def add_buffer(self, buffer: SimpleUniversalBuffer):
         self._add_offpolicy_buffer(buffer)
 
     def save(self, save_path):
@@ -110,7 +110,7 @@ class SimpleUniversalOffPolicyBuffer:
                         squeeze(-2).float()
             yield batch_data
 
-    def get_recent_samples(self, num_samples):
+    def get_recent_samples(self, num_samples) -> Dict[str, torch.Tensor]:
         assert self.size >= num_samples
         if num_samples <= self.index:
             indices = np.arange(0, num_samples)
@@ -149,7 +149,7 @@ class SimpleUniversalOffPolicyBuffer:
                 self.index = self.size
             return
 
-    def _add_offpolicy_buffer(self, buffer: SimpleUniversalOffPolicyBuffer):
+    def _add_offpolicy_buffer(self, buffer: SimpleUniversalBuffer):
         assert self.entry_infos == buffer.entry_infos, logger.error('to-add entries: {}\nbuffer entries: {}'.
                                                                     format(buffer.entry_infos, self.entry_infos))
         for name in self.entry_infos.keys():

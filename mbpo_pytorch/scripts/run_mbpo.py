@@ -11,7 +11,7 @@ from mbpo_pytorch.envs.wrapped_envs import make_vec_envs, make_vec_virtual_envs
 from mbpo_pytorch.misc import logger
 from mbpo_pytorch.misc.utils import set_seed, get_seed, log_and_write, evaluate, commit_and_save, init_logging
 from mbpo_pytorch.models import Actor, QCritic, RunningNormalizer, EnsembleRDynamics
-from mbpo_pytorch.storages import SimpleUniversalOffPolicyBuffer as Buffer, MixtureBuffer
+from mbpo_pytorch.storages import SimpleUniversalBuffer as Buffer, MixtureBuffer
 
 
 # noinspection DuplicatedCode
