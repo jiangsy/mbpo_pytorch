@@ -17,8 +17,6 @@ class SimpleUniversalOffPolicyBuffer:
         self.entry_infos = entry_dict.copy()
         self.entries = self.entry_infos.keys()
         self.entry_num_classes = {}
-        self.entry_sizes = {}
-        self.entry_indices = {}
         self.device = torch.device('cpu')
         self.buffer_size = buffer_size
         self.size = 0
@@ -63,21 +61,23 @@ class SimpleUniversalOffPolicyBuffer:
             self._insert_sequence(name, values[self.buffer_size - index:], 0)
 
     def add_buffer(self, buffer: SimpleUniversalOffPolicyBuffer):
-            self._add_offpolicy_buffer(buffer)
+        self._add_offpolicy_buffer(buffer)
 
     def save(self, save_path):
-        save_result = {'index': self.index, 'size': self.size, 'entry_infos': self.entry_infos}
+        save_result = {'index': self.index, 'size': self.size, 'entry_infos': self.entry_infos,
+                       'entry_num_classes': self.entry_num_classes}
         for name in set(self.entry_infos.keys()):
             save_result[name] = self.__dict__[name].cpu().clone()
         torch.save(save_result, save_path)
 
     def load(self, load_path):
-        state_dict = torch.load(load_path)
-        self.index, self.size, self.entry_infos = itemgetter('index', 'size', 'entry_infos')(state_dict)
+        buffer_infos = torch.load(load_path)
+        self.index, self.size, self.entry_infos, self.entry_num_classes = \
+            itemgetter('index', 'size', 'entry_infos', 'entry_num_classes')(buffer_infos)
         buffer_size = []
         for name in self.entry_infos:
-            self.__dict__[name] = state_dict[name]
-            buffer_size.append(state_dict[name].shape[0])
+            self.__dict__[name] = buffer_infos[name]
+            buffer_size.append(buffer_infos[name].shape[0])
         assert len(set(buffer_size)) == 1
         self.resize(buffer_size[0])
 
