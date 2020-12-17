@@ -176,7 +176,7 @@ class EnsembleRDynamics(BaseDynamics, ABC):
         self.elite_indices = elite_indices.copy()
         return elite_indices
 
-    def predict(self, states, actions, deterministic=False) -> Dict[str, torch.Tensor]:
+    def predict(self, states: torch.Tensor, actions: torch.Tensor, deterministic=False) -> Dict[str, torch.Tensor]:
         assert self.elite_indices is not None
         batch_size = states.shape[0]
 
@@ -202,23 +202,23 @@ class EnsembleRDynamics(BaseDynamics, ABC):
             next_states = states + diff_states
             return {'next_states': next_states, 'rewards': rewards}
 
-    def update_best_snapshots(self, losses, epoch):
+    def update_best_snapshots(self, losses, epoch) -> bool:
         # assert losses.ndim == 1 and losses.shape[0] == self.num_networks and torch.all(losses.isfinite()).item()
         updated = False
-        for index, (loss, snapshot) in enumerate(zip(losses, self.best_snapshots)):
+        for idx, (loss, snapshot) in enumerate(zip(losses, self.best_snapshots)):
             loss = loss.item()
             best_loss = snapshot[0]
             if best_loss is not None:
                 improvement_ratio = (best_loss - loss) / best_loss
             if (best_loss is None) or improvement_ratio > 0.01:
-                self.best_snapshots[index] = (loss, epoch, self.networks[index].state_dict())
+                self.best_snapshots[idx] = (loss, epoch, self.networks[idx].state_dict())
                 updated = True
         return updated
 
-    def reset_best_snapshots(self):
+    def reset_best_snapshots(self) -> None:
         self.best_snapshots = [(None, 0, None) for _ in self.networks]
 
-    def load_best_snapshots(self):
+    def load_best_snapshots(self) -> List[int]:
         best_epochs = []
         for network, (_, epoch, state_dict) in zip(self.networks, self.best_snapshots):
             network.load_state_dict(state_dict)

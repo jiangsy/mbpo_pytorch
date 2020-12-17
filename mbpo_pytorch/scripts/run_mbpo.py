@@ -88,9 +88,19 @@ def main():
         policy_buffer = virtual_buffer
 
     if config.model_load_path is not None:
-        raise NotImplemented
+        state_dicts = torch.load(config.model_load_path)
+        dynamics_sd, actor_sd, q_critic1_sd, q_critic2_sd, q_critic_target1_sd, q_critic_target2_sd = \
+            itemgetter('dynamics', 'actor', 'q_critic1', 'q_critic2', 'q_critic_target1', 'q_critic_target2')(state_dicts)
+        dynamics.load_state_dict(dynamics_sd)
+        actor.load_state_dict(actor_sd)
+        q_critic1.load_state_dict(q_critic1_sd)
+        q_critic2.load_state_dict(q_critic2_sd)
+        q_critic_target1.load_state_dict(q_critic_target1_sd)
+        q_critic_target2.load_state_dict(q_critic_target2_sd)
+
     if config.buffer_load_path is not None:
-        raise NotImplemented
+        # virtual buffer does not need loading
+        real_buffer.load(config.buffer_load_path)
 
     real_states = real_envs.reset()
 
@@ -168,6 +178,14 @@ def main():
             log_infos = [('perf/ep_rew_real_eval', np.mean(episode_rewards_real_eval)),
                          ('perf/ep_len_real_eval', np.mean(episode_lengths_real_eval))]
             log_and_write(logger, writer, log_infos, global_step=(epoch + 1) * config.env.max_episode_steps)
+
+        if (epoch + 1) % config.save_interval == 0:
+            state_dicts = {'dynamics': dynamics.state_dict(), 'actor': actor.state_dict(),
+                           'q_critic1': q_critic1.state_dict(),  'q_critic2': q_critic2.state_dict(),
+                           'q_critic_target1': q_critic_target1.state_dict(),
+                           'q_critic_target2': q_critic_target2.state_dict() }
+            torch.save(state_dicts, save_dir + '/model_state_dicts.pt')
+            real_buffer.save(save_dir + '/real_buffer.pt')
 
 
 if __name__ == '__main__':

@@ -95,7 +95,7 @@ class SimpleUniversalOffPolicyBuffer:
                         squeeze(-2).float()
             yield batch
 
-    def get_batch_generator(self, batch_size: Optional[int], ranges=None) -> Generator:
+    def get_batch_generator_epoch(self, batch_size: Optional[int], ranges=None) -> Generator:
         ranges = range(self.size) if ranges is None else ranges
         batch_size = batch_size or len(ranges)
         sampler = BatchSampler(SubsetRandomSampler(range(self.size)), batch_size, drop_last=True)
@@ -108,7 +108,7 @@ class SimpleUniversalOffPolicyBuffer:
                         squeeze(-2).float()
             yield batch
 
-    def get_recent_samples(self, num_samples) -> Dict[str, torch.Tensor]:
+    def get_recent_samples(self, num_samples):
         assert self.size >= num_samples
         if num_samples <= self.index:
             indices = np.arange(0, num_samples)
