@@ -88,27 +88,27 @@ class SimpleUniversalOffPolicyBuffer:
         batch_size = batch_size or len(ranges)
         while True:
             indices = np.fromiter(RandomSampler(ranges, replacement=True, num_samples=batch_size), np.int32)
-            batch = {}
+            batch_data = {}
             for name in self.entry_infos.keys():
-                batch[name] = self.__dict__[name].view(-1, *self.__dict__[name].shape[1:])[indices].clone().\
+                batch_data[name] = self.__dict__[name][indices].clone().\
                     to(self.device)
                 if name in self.entry_num_classes and getattr(self, 'use_onehot_output', False):
-                    batch[name] = F.one_hot(batch[name].long(), num_classes=self.entry_num_classes[name]).\
+                    batch_data[name] = F.one_hot(batch_data[name].long(), num_classes=self.entry_num_classes[name]).\
                         squeeze(-2).float()
-            yield batch
+            yield batch_data
 
     def get_batch_generator_epoch(self, batch_size: Optional[int], ranges=None) -> Generator:
         ranges = range(self.size) if ranges is None else ranges
         batch_size = batch_size or len(ranges)
         sampler = BatchSampler(SubsetRandomSampler(range(self.size)), batch_size, drop_last=True)
         for indices in sampler:
-            batch = {}
+            batch_data = {}
             for name in self.entry_infos.keys():
-                batch[name] = self.__dict__[name].view(-1, *self.__dict__[name].shape[1:])[indices].clone().to(self.device)
+                batch_data[name] = self.__dict__[name][indices].clone().to(self.device)
                 if name in self.entry_num_classes and getattr(self, 'use_onehot_output', False):
-                    batch[name] = F.one_hot(batch[name].long(), num_classes=self.entry_num_classes[name]).\
+                    batch_data[name] = F.one_hot(batch_data[name].long(), num_classes=self.entry_num_classes[name]).\
                         squeeze(-2).float()
-            yield batch
+            yield batch_data
 
     def get_recent_samples(self, num_samples):
         assert self.size >= num_samples
@@ -117,13 +117,13 @@ class SimpleUniversalOffPolicyBuffer:
         else:
             indices = np.concatenate([np.arange(self.size - (num_samples - self.index), self.size),
                                       np.arange(0, self.index)], axis=-1)
-        batch = {}
+        batch_data = {}
         for name in self.entry_infos.keys():
-            batch[name] = self.__dict__[name].view(-1, *self.__dict__[name].shape[1:])[indices].clone().to(self.device)
+            batch_data[name] = self.__dict__[name][indices].clone().to(self.device)
             if name in self.entry_num_classes and getattr(self, 'use_onehot_output', False):
-                batch[name] = F.one_hot(batch[name].long(), num_classes=self.entry_num_classes[name]). \
+                batch_data[name] = F.one_hot(batch_data[name].long(), num_classes=self.entry_num_classes[name]). \
                     squeeze(-2).float()
-        return batch
+        return batch_data
 
     def resize(self, buffer_size):
         if buffer_size == self.buffer_size:
@@ -150,9 +150,10 @@ class SimpleUniversalOffPolicyBuffer:
             return
 
     def _add_offpolicy_buffer(self, buffer: SimpleUniversalOffPolicyBuffer):
-        length = buffer.size
+        assert self.entry_infos == buffer.entry_infos, logger.error('to-add entries: {}\nbuffer entries: {}'.
+                                                                    format(buffer.entry_infos, self.entry_infos))
         for name in self.entry_infos.keys():
             assert self.__dict__[name].shape[1:] == buffer.__dict__[name].shape[1:]
-            self._insert_sequence(name, buffer.__dict__[name][:length], self.index)
-        self.size = min(self.size + length, self.buffer_size)
-        self.index = (self.index + length) % self.buffer_size
+            self._insert_sequence(name, buffer.__dict__[name][:buffer.size], self.index)
+        self.size = min(self.size + buffer.size, self.buffer_size)
+        self.index = (self.index + buffer.size) % self.buffer_size
