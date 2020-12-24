@@ -8,8 +8,9 @@ Please refer to ./requirements.txt.
 # Usage
 
     pip install -e .
-    
+
     # default hyperparams in ./configs/mbpo.yaml
+    # remember to CHANGE proj_dir to your actual directory 
     python ./mbpo_pytorch/scripts/run_mbpo.py
     
     # you can also overwrite hyperparams by passing args, e.g.
