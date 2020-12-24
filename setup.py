@@ -17,7 +17,8 @@ setup(
         'munch',
         'pyyaml',
         'colorama',
-        'tensorboard>=1.15.0'
+        'tensorboard>=1.15.0',
+        'pandas'
     ],
     package_data={
         # include default config files and env data files

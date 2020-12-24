@@ -86,8 +86,8 @@ class MBPO:
         self.dynamics.reset_best_snapshots()
 
         for epoch in epoch_iter:
-            train_gen = model_buffer.get_batch_generator(self.batch_size, train_indices)
-            val_gen = model_buffer.get_batch_generator(None, val_indices)
+            train_gen = model_buffer.get_batch_generator_epoch(self.batch_size, train_indices)
+            val_gen = model_buffer.get_batch_generator_epoch(None, val_indices)
 
             for samples in train_gen:
                 train_model_loss, train_l2_loss = self.compute_loss(samples, True, True)
@@ -118,7 +118,7 @@ class MBPO:
         model_loss_epoch /= num_updates
         l2_loss_epoch /= num_updates
 
-        val_gen = model_buffer.get_batch_generator_inf(None, val_indices)
+        val_gen = model_buffer.get_batch_generator_epoch(None, val_indices)
         best_epochs = self.dynamics.load_best_snapshots()
         with torch.no_grad():
             val_model_loss, _ = self.compute_loss(next(val_gen), False, False)
