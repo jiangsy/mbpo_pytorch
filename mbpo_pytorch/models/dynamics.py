@@ -235,12 +235,17 @@ class FastEnsembleRDynamics(BaseDynamics, ABC):
         self.num_networks = num_networks
 
         hidden_dims.insert(0, state_dim + action_dim)
-        hidden_dims.insert(-1, 2 * (state_dim + reward_dim))
-        self.weights = [nn.Parameter(truncated_norm_init(torch.zeros(num_networks, hidden_dims[i], hidden_dims[i+1])),
-                                     requires_grad=True) for i in range(len(hidden_dims) - 1)]
-        self.biases = [nn.Parameter(torch.zeros(num_networks, hidden_dims[i+1]), requires_grad=True)
-                       for i in range(len(hidden_dims) - 1)]
-        self.num_layers = len(self.weights) - 1
+        hidden_dims.append(2 * (state_dim + reward_dim))
+        self.weights = nn.ParameterList([nn.Parameter(truncated_norm_init(torch.zeros(num_networks, hidden_dims[i],
+                                                                                      hidden_dims[i+1])),
+                                         requires_grad=True) for i in range(len(hidden_dims) - 1)])
+        self.biases = nn.ParameterList([nn.Parameter(torch.zeros(num_networks, hidden_dims[i+1]), requires_grad=True)
+                                        for i in range(len(hidden_dims) - 1)])
+
+        self.saved_weights = [nn.Parameter(torch.zeros(num_networks, hidden_dims[i], hidden_dims[i+1]))
+                              for i in range(len(hidden_dims) - 1)]
+        self.saved_biases = [nn.Parameter(torch.zeros(num_networks, hidden_dims[i+1]))
+                             for i in range(len(hidden_dims) - 1)]
 
         self.max_logvar = nn.Parameter(torch.ones([1, state_dim + reward_dim]) / 2.)
         self.min_logvar = nn.Parameter(-torch.ones([1, state_dim + reward_dim]) * 10.)
@@ -254,7 +259,7 @@ class FastEnsembleRDynamics(BaseDynamics, ABC):
             return None
         self.register_backward_hook(backward_hook_fn)
 
-        self.best_snapshots = [(None, 0, None) for _ in self.networks]
+        self.best_snapshots = [(None, 0, None) for _ in range(self.num_networks)]
 
     def load(self, load_path):
         pass
@@ -266,14 +271,14 @@ class FastEnsembleRDynamics(BaseDynamics, ABC):
         normalized_states_actions = self.state_action_normalizer(torch.cat([states, actions], dim=-1))
         ndim = normalized_states_actions.ndim
         if ndim == 2:
-            normalized_states_actions = normalized_states_actions.unsqueeze(0).repeat([self.num_networks, 1])
+            normalized_states_actions = normalized_states_actions.unsqueeze(0).repeat([self.num_networks, 1, 1])
         outputs = normalized_states_actions
         for weight, bias in zip(self.weights, self.biases):
             outputs = torch.einsum('nio, nbi -> nbo', weight, outputs)
             outputs = outputs + bias.unsqueeze(1).repeat([1, outputs.shape[1], 1])
 
         factored_means = outputs[..., :self.state_dim + self.reward_dim]
-        factored_logvars = outputs[..., self.state_dim + self.reward_dim]
+        factored_logvars = outputs[..., self.state_dim + self.reward_dim:]
 
         factored_logvars = self.max_logvar - F.softplus(self.max_logvar - factored_logvars)
         factored_logvars = self.min_logvar + F.softplus(factored_logvars - self.min_logvar)
@@ -303,9 +308,13 @@ class FastEnsembleRDynamics(BaseDynamics, ABC):
                 'reward_means': farctored_reward_means,
                 'reward_logvars': farctored_reward_logvars}
 
-    def compute_l2_loss(self, l2_loss_coefs: Union[float, List[float]]) -> torch.Tensor:
-        l2_losses = [network.compute_l2_loss(l2_loss_coefs) for network in self.networks]
-        return torch.stack(l2_losses, dim=0)
+    def compute_l2_loss(self, l2_loss_coefs: Union[float, List[float]]):
+        weight_norms = []
+        for weight in self.weights:
+            weight_norms.append(weight.norm(2, dim=(1, 2)))
+        weight_norms = torch.stack(weight_norms, dim=-1)
+        weight_decays = torch.mm(weight_norms, torch.tensor(l2_loss_coefs, device=weight_norms.device).unsqueeze(-1))
+        return weight_decays
 
     def update_elite_indices(self, losses: torch.Tensor) -> np.ndarray:
         assert losses.ndim == 1 and losses.shape[0] == self.num_networks
@@ -339,8 +348,19 @@ class FastEnsembleRDynamics(BaseDynamics, ABC):
             next_states = states + diff_states
             return {'next_states': next_states, 'rewards': rewards}
 
+    def _save_network_params(self, network_idx):
+        for (weight, bias, saved_weight, saved_bias) in zip(self.weights, self.biases,
+                                                            self.saved_weights, self.saved_biases):
+            saved_weight[network_idx].copy_(weight[network_idx])
+            saved_bias[network_idx].copy_(bias[network_idx])
+
+    def _load_network_params(self, network_idx):
+        for (weight, bias, saved_weight, saved_bias) in zip(self.weights, self.biases,
+                                                            self.saved_weights, self.saved_biases):
+            weight[network_idx].copy_(saved_weight[network_idx])
+            bias[network_idx].copy_(saved_bias[network_idx])
+
     def update_best_snapshots(self, losses, epoch) -> bool:
-        # assert losses.ndim == 1 and losses.shape[0] == self.num_networks and torch.all(losses.isfinite()).item()
         updated = False
         for idx, (loss, snapshot) in enumerate(zip(losses, self.best_snapshots)):
             loss = loss.item()
@@ -348,17 +368,18 @@ class FastEnsembleRDynamics(BaseDynamics, ABC):
             if best_loss is not None:
                 improvement_ratio = (best_loss - loss) / best_loss
             if (best_loss is None) or improvement_ratio > 0.01:
-                self.best_snapshots[idx] = (loss, epoch, self.networks[idx].state_dict())
+                self.best_snapshots[idx] = (loss, epoch)
+                self._save_network_params(idx)
                 updated = True
         return updated
 
     def reset_best_snapshots(self) -> None:
-        self.best_snapshots = [(None, 0, None) for _ in self.networks]
+        self.best_snapshots = [(None, 0) for _ in range(self.num_networks)]
 
     def load_best_snapshots(self) -> List[int]:
         best_epochs = []
-        for network, (_, epoch, state_dict) in zip(self.networks, self.best_snapshots):
-            network.load_state_dict(state_dict)
+        for idx, (_, epoch) in enumerate(self.best_snapshots):
+            self._load_network_params(idx)
             best_epochs.append(epoch)
         return best_epochs
 

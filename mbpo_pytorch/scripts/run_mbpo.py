@@ -10,7 +10,7 @@ from mbpo_pytorch.configs.config import Config
 from mbpo_pytorch.envs.wrapped_envs import make_vec_envs, make_vec_virtual_envs
 from mbpo_pytorch.misc import logger
 from mbpo_pytorch.misc.utils import set_seed, get_seed, log_and_write, evaluate, commit_and_save, init_logging
-from mbpo_pytorch.models import Actor, QCritic, RunningNormalizer, EnsembleRDynamics
+from mbpo_pytorch.models import Actor, QCritic, RunningNormalizer, EnsembleRDynamics, FastEnsembleRDynamics
 from mbpo_pytorch.storages import SimpleUniversalBuffer as Buffer, MixtureBuffer
 
 
@@ -37,14 +37,12 @@ def main():
     datatype = {'states': {'dims': [state_dim]}, 'next_states': {'dims': [state_dim]},
                 'actions': {'dims': [action_dim]}, 'rewards': {'dims': [1]}, 'masks': {'dims': [1]}}
 
-    state_normalizer = RunningNormalizer(state_dim)
-    action_normalizer = RunningNormalizer(action_dim)
-    state_normalizer.to(device)
-    action_normalizer.to(device)
+    state_action_normalizer = RunningNormalizer(state_dim + action_dim)
+    state_action_normalizer.to(device)
 
-    dynamics = EnsembleRDynamics(state_dim, action_dim, 1, config.mbpo.dynamics_hidden_dims,
-                                 mb_config.num_dynamics_networks, mb_config.num_elite_dynamics_networks,
-                                 state_normalizer, action_normalizer)
+    dynamics = FastEnsembleRDynamics(state_dim, action_dim, 1, config.mbpo.dynamics_hidden_dims,
+                                     mb_config.num_dynamics_networks, mb_config.num_elite_dynamics_networks,
+                                     state_action_normalizer)
     dynamics.to(device)
 
     actor = Actor(state_dim, action_space, mf_config.actor_hidden_dims, state_normalizer=None,
@@ -127,8 +125,7 @@ def main():
     recent_states, recent_actions = itemgetter('states', 'actions') \
         (real_buffer.get_recent_samples(mb_config.num_warmup_samples - mb_config.model_update_interval))
 
-    state_normalizer.update(recent_states)
-    action_normalizer.update(recent_actions)
+    state_action_normalizer.update(torch.cat([recent_states, recent_actions], dim=-1))
 
     start = time.time()
 
@@ -142,8 +139,7 @@ def main():
             if i % mb_config.model_update_interval == 0:
                 recent_states, recent_actions = itemgetter('states', 'actions') \
                     (real_buffer.get_recent_samples(mb_config.model_update_interval))
-                state_normalizer.update(recent_states)
-                action_normalizer.update(recent_actions)
+                state_action_normalizer.update(torch.cat([recent_states, recent_actions], dim=-1))
 
                 losses.update(model.update(real_buffer))
                 initial_states = next(real_buffer.get_batch_generator_inf(mb_config.rollout_batch_size))['states']
@@ -157,8 +153,7 @@ def main():
             real_masks = torch.tensor([[0.0] if done else [1.0] for done in real_dones], dtype=torch.float32)
             real_buffer.insert(states=real_states, actions=real_actions, rewards=real_rewards, masks=real_masks,
                                next_states=real_next_states)
-            state_normalizer.update(real_states)
-            action_normalizer.update(real_actions)
+
             real_states = real_next_states
             real_episode_rewards.extend([info['episode']['r'] for info in real_infos if 'episode' in info])
             real_episode_lengths.extend([info['episode']['l'] for info in real_infos if 'episode' in info])
