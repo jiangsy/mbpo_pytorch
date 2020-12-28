@@ -350,14 +350,14 @@ class FastEnsembleRDynamics(BaseDynamics, ABC):
     def _save_network_params(self, network_idx):
         for (weight, bias, saved_weight, saved_bias) in zip(self.weights, self.biases,
                                                             self.saved_weights, self.saved_biases):
-            saved_weight[network_idx].copy_(weight[network_idx])
-            saved_bias[network_idx].copy_(bias[network_idx])
+            saved_weight[network_idx].data.copy_(weight[network_idx])
+            saved_bias[network_idx].data.copy_(bias[network_idx])
 
     def _load_network_params(self, network_idx):
         for (weight, bias, saved_weight, saved_bias) in zip(self.weights, self.biases,
                                                             self.saved_weights, self.saved_biases):
-            weight[network_idx].copy_(saved_weight[network_idx])
-            bias[network_idx].copy_(saved_bias[network_idx])
+            weight[network_idx].data.copy_(saved_weight[network_idx])
+            bias[network_idx].data.copy_(saved_bias[network_idx])
 
     def update_best_snapshots(self, losses, epoch) -> bool:
         updated = False
