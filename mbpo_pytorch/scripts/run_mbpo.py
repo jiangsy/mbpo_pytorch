@@ -74,12 +74,14 @@ def main():
 
     virtual_buffer = Buffer(base_virtual_buffer_size, datatype)
     virtual_buffer.to(device)
+    agent.check_buffer(virtual_buffer)
 
     model = MBPO(dynamics, mb_config.dynamics_batch_size, rollout_schedule=mb_config.rollout_schedule, verbose=1,
                  lr=mb_config.lr, l2_loss_coefs=config.mbpo.l2_loss_coefs, max_num_epochs=mb_config.max_num_epochs)
 
     real_buffer = Buffer(mb_config.real_buffer_size, datatype)
     real_buffer.to(device)
+    model.check_buffer(real_buffer)
 
     if mb_config.real_sample_ratio > 0:
         policy_buffer = MixtureBuffer([virtual_buffer, real_buffer],

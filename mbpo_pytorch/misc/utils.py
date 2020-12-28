@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import os
 import random
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 import numpy as np
 import torch
@@ -8,6 +10,9 @@ from torch.utils.tensorboard import SummaryWriter
 
 from mbpo_pytorch.envs.wrapped_envs import make_vec_envs, get_vec_normalize
 from mbpo_pytorch.misc import logger
+
+if TYPE_CHECKING:
+    from mbpo_pytorch.storages import SimpleUniversalBuffer
 
 
 def log_and_write(logger, writer: SummaryWriter, log_infos: List, global_step: int):
@@ -20,7 +25,7 @@ def log_and_write(logger, writer: SummaryWriter, log_infos: List, global_step: i
         logger.dumpkvs()
 
 
-def collect_traj(actor, envs, initial_states, buffer, num_steps):
+def collect_traj(actor, envs, initial_states: Optional[torch.Tensor], buffer: SimpleUniversalBuffer, num_steps: int):
     episode_rewards = []
     episode_lengths = []
 
@@ -43,7 +48,6 @@ def evaluate(actor, env_name, seed, num_episode, eval_log_dir,
              device, norm_reward=False, norm_obs=True, obs_rms=None):
     eval_envs = make_vec_envs(env_name, seed, 1, None, eval_log_dir, device, allow_early_resets=True,
                               norm_obs=norm_obs, norm_reward=norm_reward)
-
     vec_norm = get_vec_normalize(eval_envs)
     if vec_norm is not None and norm_obs:
         assert obs_rms is not None
@@ -54,7 +58,6 @@ def evaluate(actor, env_name, seed, num_episode, eval_log_dir,
     eval_episode_lengths = []
 
     states = eval_envs.reset()
-
     while len(eval_episode_rewards) < num_episode:
         with torch.no_grad():
             actions = actor.act(states, deterministic=True)['actions']
@@ -69,7 +72,7 @@ def evaluate(actor, env_name, seed, num_episode, eval_log_dir,
     return eval_episode_rewards, eval_episode_lengths
 
 
-def set_seed(seed, strict=False):
+def set_seed(seed: int, strict=False):
     np.random.seed(seed)
     torch.manual_seed(np.random.randint(2 ** 30))
     random.seed(np.random.randint(2 ** 30))
@@ -81,8 +84,9 @@ def set_seed(seed, strict=False):
     except AttributeError:
         pass
 
+
 def get_seed():
-    return random.randint(0, 2**32-1)
+    return random.randint(0, 2 ** 32 - 1)
 
 
 def commit_and_save(proj_dir: str, save_dir: Optional[str] = None, auto_commit: bool = False, auto_save: bool = False):

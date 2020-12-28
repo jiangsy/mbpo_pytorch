@@ -63,6 +63,10 @@ class SAC:
         self.total_num_updates = 0
         self._need_to_update_eval_statistics = True
 
+    @staticmethod
+    def check_buffer(buffer):
+        assert {'states', 'actions', 'rewards', 'masks', 'next_states'}.issubset(buffer.entry_infos.keys())
+
     def update(self, policy_buffer: Buffer) -> Dict[str, float]:
 
         data_generator = policy_buffer.get_batch_generator_inf(self.batch_size)

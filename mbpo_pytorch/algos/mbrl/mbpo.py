@@ -41,6 +41,10 @@ class MBPO:
         self.elite_dynamics_indices = []
         self.verbose = verbose
 
+    @staticmethod
+    def check_buffer(buffer):
+        assert {'states', 'actions', 'rewards', 'masks', 'next_states'}.issubset(buffer.entry_infos.keys())
+
     def compute_loss(self, samples: Dict[str, torch.Tensor], use_var_loss=True, use_l2_loss=True):
         states, actions, next_states, rewards, masks = \
             itemgetter('states', 'actions', 'next_states', 'rewards', 'masks')(samples)

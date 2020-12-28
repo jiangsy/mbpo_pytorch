@@ -224,5 +224,3 @@ class EnsembleRDynamics(BaseDynamics, ABC):
             network.load_state_dict(state_dict)
             best_epochs.append(epoch)
         return best_epochs
-
-

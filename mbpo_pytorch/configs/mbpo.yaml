@@ -1,6 +1,6 @@
 proj_name: 'MBPO'
 mf_algo: 'sac'
-proj_dir: '/home/amax/Documents/mbpo'
+proj_dir: '/home/liuxh/Documents/mbpo'
 result_dir: './result'
 save_dir: './save'
 device: 'cuda:0' # e.g 'cpu', 'cuda', 'cuda:0'
