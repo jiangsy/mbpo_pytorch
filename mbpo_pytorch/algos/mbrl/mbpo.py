@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from itertools import count
 from operator import itemgetter
 from typing import TYPE_CHECKING, Dict, List
@@ -39,6 +40,7 @@ class MBPO:
 
         self.dynamics_optimizer = torch.optim.Adam(self.dynamics.parameters(), lr)
         self.elite_dynamics_indices = []
+        self.max_unupdated_epochs = 5
         self.verbose = verbose
 
     @staticmethod
@@ -116,7 +118,7 @@ class MBPO:
                 num_epoch_after_update = 0
             else:
                 num_epoch_after_update += 1
-            if num_epoch_after_update > 5:
+            if num_epoch_after_update > self.max_unupdated_epochs:
                 break
 
         model_loss_epoch /= num_updates
@@ -148,6 +150,7 @@ class MBPO:
             logger.log('[ Model Rollout ] Max rollout length {} -> {} '.format(self.num_rollout_steps, int(y)))
         self.num_rollout_steps = int(y)
 
+    # noinspection PyTypeChecker
     def collect_data(self, virtual_envs: VecVirtualEnv, policy_buffer: Buffer, initial_states: torch.Tensor, actor):
         states = initial_states
         batch_size = initial_states.shape[0]

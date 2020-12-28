@@ -19,6 +19,7 @@ class MLP(nn.Module):
         layers.append(nn.Linear(sizes_list[-1], output_dim))
         self.layers = nn.ModuleList(layers)
 
+    # noinspection PyTypeChecker
     def forward(self, x):
         for layer in self.layers[:-1]:
             x = layer(x)
@@ -27,6 +28,7 @@ class MLP(nn.Module):
         x = self.last_activation(x)
         return x
 
+    # noinspection PyTypeChecker
     def init(self, init_fn, last_init_fn):
         for layer in self.layers[:-1]:
             init_fn(layer)
