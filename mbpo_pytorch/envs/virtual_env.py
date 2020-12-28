@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import abc
 from abc import ABC
 from typing import TYPE_CHECKING
@@ -9,7 +10,6 @@ import torch
 import gym
 
 from mbpo_pytorch.thirdparty.base_vec_env import VecEnv
-from mbpo_pytorch.storages import SimpleUniversalBuffer as Buffer
 
 if TYPE_CHECKING:
     from mbpo_pytorch.models.dynamics import BaseDynamics

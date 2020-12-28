@@ -183,7 +183,7 @@ class EnsembleRDynamics(BaseDynamics, ABC):
         # only use elite networks for prediction
         indices = np.random.choice(self.elite_indices, batch_size)
         diff_state_means, diff_state_logvars, reward_means, reward_logvars = \
-            itemgetter('diff_state_means', 'diff_state_logvars', 'reward_means', 'reward_logvars')\
+            itemgetter('diff_state_means', 'diff_state_logvars', 'reward_means', 'reward_logvars') \
                 (self.forward(states, actions, True))
 
         diff_state_means, diff_state_logvars = diff_state_means[indices, np.arange(batch_size)], \

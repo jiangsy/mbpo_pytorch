@@ -1,11 +1,14 @@
+from abc import ABC
+
 import torch
 import torch.nn as nn
 
-from mbpo_pytorch.misc.distributions import FixedNormal, FixedCategorical, FixedBernoulli, TanhNormal, FixedLimitedEntNormal
+from mbpo_pytorch.misc.distributions import FixedNormal, FixedCategorical, FixedBernoulli, TanhNormal, \
+    FixedLimitedEntNormal
 from .utils import init
 
 
-class CategoricalActorLayer(nn.Module):
+class CategoricalActorLayer(nn.Module, ABC):
     def __init__(self, num_inputs, num_outputs):
         super(CategoricalActorLayer, self).__init__()
 
@@ -17,7 +20,7 @@ class CategoricalActorLayer(nn.Module):
         return FixedCategorical(logits=x)
 
 
-class GaussianActorLayer(nn.Module):
+class GaussianActorLayer(nn.Module, ABC):
     def __init__(self, num_inputs, num_outputs, use_state_dependent_std):
         super(GaussianActorLayer, self).__init__()
 
@@ -42,7 +45,7 @@ class GaussianActorLayer(nn.Module):
         return FixedNormal(action_mean, logstd.exp()), action_mean, logstd
 
 
-class LimitedEntGaussianActorLayer(nn.Module):
+class LimitedEntGaussianActorLayer(nn.Module, ABC):
     def __init__(self, num_inputs, num_outputs, use_state_dependent_std):
         super(LimitedEntGaussianActorLayer, self).__init__()
 
@@ -79,7 +82,7 @@ class BernoulliActorLayer(nn.Module):
         return FixedBernoulli(logits=x)
 
 
-class TanhGaussainActorLayer(nn.Module):
+class TanhGaussainActorLayer(nn.Module, ABC):
     def __init__(self, num_inputs, num_outputs, use_state_dependent_std, init_w=1e-3):
         super(TanhGaussainActorLayer, self).__init__()
 

@@ -1,11 +1,10 @@
 from abc import ABC
 
 import torch
-import torch.distributions.kl as kl
 import torch.nn as nn
 from typing import List
 
-from mbpo_pytorch.misc import logger
+from mbpo_pytorch.thirdparty.running_mean_std import RunningMeanStd
 
 
 class RunningNormalizer(nn.Module, ABC):
