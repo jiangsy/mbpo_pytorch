@@ -132,25 +132,25 @@ class EnsembleRDynamics(BaseDynamics, ABC):
 
         # diff_states, rewards is [num_networks, batch_size, *]
         diff_states, rewards = torch.stack(outputs['diff_states'], dim=0), torch.stack(outputs['rewards'], dim=0)
-        farctored_diff_state_means, farctored_diff_state_logvars = \
+        factored_diff_state_means, factored_diff_state_logvars = \
             diff_states[..., :self.state_dim], diff_states[..., self.state_dim:]
-        farctored_reward_means, farctored_reward_logvars = \
+        factored_reward_means, factored_reward_logvars = \
             rewards[..., :self.reward_dim], rewards[..., self.reward_dim:]
 
-        farctored_diff_state_logvars = self.max_state_logvar -\
-                                       F.softplus(self.max_state_logvar - farctored_diff_state_logvars)
-        farctored_diff_state_logvars = self.min_state_logvar + \
-                                       F.softplus(farctored_diff_state_logvars - self.min_state_logvar)
-        farctored_reward_logvars = self.max_reward_logvar - F.softplus(self.max_reward_logvar - farctored_reward_logvars)
-        farctored_reward_logvars = self.min_reward_logvar + F.softplus(farctored_reward_logvars - self.min_reward_logvar)
+        factored_diff_state_logvars = self.max_state_logvar -\
+                                       F.softplus(self.max_state_logvar - factored_diff_state_logvars)
+        factored_diff_state_logvars = self.min_state_logvar + \
+                                       F.softplus(factored_diff_state_logvars - self.min_state_logvar)
+        factored_reward_logvars = self.max_reward_logvar - F.softplus(self.max_reward_logvar - factored_reward_logvars)
+        factored_reward_logvars = self.min_reward_logvar + F.softplus(factored_reward_logvars - self.min_reward_logvar)
 
         if ndim == 2 and not use_factored:
-            diff_state_means = torch.mean(farctored_diff_state_means, dim=0)
-            diff_state_vars = torch.mean((farctored_diff_state_means - diff_state_means) ** 2, dim=0) + \
-                              torch.mean(torch.exp(farctored_diff_state_logvars), dim=0)
-            reward_means = torch.mean(farctored_reward_means, dim=0)
-            reward_vars = torch.mean((farctored_reward_means - reward_means) ** 2, dim=0) + \
-                          torch.mean(torch.exp(farctored_reward_logvars), dim=0)
+            diff_state_means = torch.mean(factored_diff_state_means, dim=0)
+            diff_state_vars = torch.mean((factored_diff_state_means - diff_state_means) ** 2, dim=0) + \
+                              torch.mean(torch.exp(factored_diff_state_logvars), dim=0)
+            reward_means = torch.mean(factored_reward_means, dim=0)
+            reward_vars = torch.mean((factored_reward_means - reward_means) ** 2, dim=0) + \
+                          torch.mean(torch.exp(factored_reward_logvars), dim=0)
 
             # return batch_size * dim
             return {'diff_states': diff_state_means,
@@ -161,10 +161,10 @@ class EnsembleRDynamics(BaseDynamics, ABC):
                     'reward_logvars': reward_vars}
 
         # return num_ensemble * batch_size * dim
-        return {'diff_state_means': farctored_diff_state_means,
-                'diff_state_logvars': farctored_diff_state_logvars,
-                'reward_means': farctored_reward_means,
-                'reward_logvars': farctored_reward_logvars}
+        return {'diff_state_means': factored_diff_state_means,
+                'diff_state_logvars': factored_diff_state_logvars,
+                'reward_means': factored_reward_means,
+                'reward_logvars': factored_reward_logvars}
 
     def compute_l2_loss(self, l2_loss_coefs: Union[float, List[float]]) -> torch.Tensor:
         l2_losses = [network.compute_l2_loss(l2_loss_coefs) for network in self.networks]
