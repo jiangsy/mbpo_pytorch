@@ -19,7 +19,7 @@ def fanin_init(tensor, **kwargs):
 
 
 def truncated_norm_init(tensor, mean=0, std=None, **kwargs):
-    size = tensor.shape
+    size = tensor.shape[-2:]
     std = std or 1.0/(2*np.sqrt(size[0]))
     tmp = tensor.new_empty(size + (4,)).normal_()
     valid = (tmp < 2) & (tmp > -2)

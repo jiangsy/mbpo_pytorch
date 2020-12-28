@@ -28,6 +28,7 @@ EMAIL_ACCOUNT = 'jiangsy@lamda.nju.edu.cn'
 EMAIL_PASSWORD = None
 LAST_EMAIL_TIME = None
 
+
 class KVWriter(object):
     def writekvs(self, kvs):
         raise NotImplementedError
@@ -358,7 +359,7 @@ def configure(folder=None, format_strs=None, log_email=False, proj_name=None):
     output_formats = [make_output_format(f, folder, log_suffix) for f in format_strs]
 
     Logger.CURRENT = Logger(folder=folder, output_formats=output_formats)
-    info('Logging to %s' % folder)
+    info('Logging to %s' % os.path.realpath(folder))
 
     if log_email:
         global EMAIL_ACCOUNT
