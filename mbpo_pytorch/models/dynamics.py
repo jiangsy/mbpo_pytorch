@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Normal
 
-from .initializer import truncated_norm_init
+from .initializer import truncated_norm_init, truncated_norm_init3d
 from .normalizer import RunningNormalizer
 from .utils import MLP, init
 
@@ -236,7 +236,7 @@ class FastEnsembleRDynamics(BaseDynamics, ABC):
 
         hidden_dims.insert(0, state_dim + action_dim)
         hidden_dims.append(2 * (state_dim + reward_dim))
-        self.weights = nn.ParameterList([nn.Parameter(truncated_norm_init(torch.zeros(num_networks, hidden_dims[i],
+        self.weights = nn.ParameterList([nn.Parameter(truncated_norm_init3d(torch.zeros(num_networks, hidden_dims[i],
                                                                                       hidden_dims[i+1])),
                                          requires_grad=True) for i in range(len(hidden_dims) - 1)])
         self.biases = nn.ParameterList([nn.Parameter(torch.zeros(num_networks, hidden_dims[i+1]), requires_grad=True)
@@ -323,7 +323,6 @@ class FastEnsembleRDynamics(BaseDynamics, ABC):
         return elite_indices
 
     def predict(self, states: torch.Tensor, actions: torch.Tensor, deterministic=False) -> Dict[str, torch.Tensor]:
-        assert self.elite_indices is not None
         batch_size = states.shape[0]
 
         # only use elite networks for prediction
