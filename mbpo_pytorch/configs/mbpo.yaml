@@ -15,7 +15,7 @@ log_email: False
 debug: False
 
 env:
-    env_name: 'FixedHopper'
+    env_name: 'OriginalHalfCheetah'
     num_real_envs: 1
     gamma: 0.99
     max_episode_steps: 1000

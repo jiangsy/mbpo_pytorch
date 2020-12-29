@@ -74,6 +74,6 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle, BaseModelBasedEnv):
             actions = np.clip(actions, self.action_space.low,
                               self.action_space.high)
         rewards = - self.cost_np_vec(states, actions, next_states)
-        height, ang = next_states[:, 0], next_states[:, 1]
-        done = np.logical_or(height <= 0.7, abs(ang) >= 0.2)
-        return rewards, done
+        heights, angs = next_states[:, 0], next_states[:, 1]
+        dones = np.logical_or(heights <= 0.7, abs(angs) >= 0.2)
+        return rewards, dones
