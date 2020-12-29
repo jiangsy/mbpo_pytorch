@@ -9,7 +9,6 @@ import torch
 import gym
 
 from mbpo_pytorch.thirdparty.base_vec_env import VecEnv
-from mbpo_pytorch.storages import SimpleUniversalBuffer as Buffer
 
 if TYPE_CHECKING:
     from mbpo_pytorch.models.dynamics import BaseDynamics
@@ -45,6 +44,7 @@ class VecVirtualEnv(VecEnv, ABC):
 
         self.action_lo_np = self.action_space.low
         self.action_hi_np = self.action_space.high
+        self.actions = None
 
         self.action_lo_torch = torch.tensor(self.action_space.low, dtype=torch.float32, device=self.device)
         self.action_hi_torch = torch.tensor(self.action_space.high, dtype=torch.float32, device=self.device)

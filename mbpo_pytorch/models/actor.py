@@ -1,13 +1,15 @@
 from __future__ import annotations
-from typing import List, Optional, TYPE_CHECKING
+
+from abc import ABC
+from typing import List, Optional
 
 from .initializer import normc_init
-from .utils import MLP, init
+from .utils import MLP
 from .actor_layer import *
 
 
 # noinspection DuplicatedCode
-class Actor(nn.Module):
+class Actor(nn.Module, ABC):
     def __init__(self, state_dim: int, action_space, hidden_dims: List[int],
                  state_normalizer: Optional[nn.Module], use_limited_entropy=False, use_tanh_squash=False,
                  use_state_dependent_std=False, **kwargs):

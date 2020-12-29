@@ -1,9 +1,11 @@
+from abc import ABC
+
 import numpy as np
 import torch
 import torch.nn as nn
 
 
-class MLP(nn.Module):
+class MLP(nn.Module, ABC):
     def __init__(self, input_dim, output_dim, hidden_dims, activation='tanh', last_activation='identity', biases=None):
         super(MLP, self).__init__()
         sizes_list = hidden_dims.copy()

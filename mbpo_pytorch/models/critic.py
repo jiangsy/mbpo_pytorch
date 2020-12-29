@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import List
 
 from gym.spaces import Box, MultiBinary, Discrete
@@ -8,16 +9,17 @@ from .initializer import normc_init, fanin_init
 from .utils import MLP, init
 
 
-class QCritic(nn.Module):
-    def __init__(self, state_dim, action_space, hidden_dims, init_w=3e-3, init_b=0.1, use_multihead_output=False,
-                 **kwargs):
+class QCritic(nn.Module, ABC):
+    def __init__(self, state_dim, action_space, hidden_dims: List[int], init_w=3e-3, init_b=0.1,
+                 use_multihead_output=False, **kwargs):
         super(QCritic, self).__init__()
 
         assert not use_multihead_output or action_space.__class__.__name__ == 'Discrete'
 
         if isinstance(action_space, Box) or isinstance(action_space, MultiBinary):
             action_dim = action_space.shape[0]
-        elif isinstance(action_space, Discrete):
+        else:
+            assert isinstance(action_space, Discrete)
             action_dim = action_space.n
 
         mlp_kwargs = kwargs.copy()
@@ -44,7 +46,7 @@ class QCritic(nn.Module):
         return self.critic_feature(state)[action.type(torch.bool)].unsqueeze(dim=-1)
 
 
-class VCritic(nn.Module):
+class VCritic(nn.Module, ABC):
     def __init__(self, dim_state: int, hidden_dims: List[int], state_normalizer=None, activation='Tanh'):
         super(VCritic, self).__init__()
         self.critic = MLP(dim_state, 1, hidden_dims, activation=activation)

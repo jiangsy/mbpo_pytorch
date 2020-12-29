@@ -1,6 +1,3 @@
-import abc
-
-import gym
 import numpy as np
 
 from .gym.half_cheetah import HalfCheetahEnv
@@ -45,6 +42,7 @@ def make_benchmarking_env(env_id: str):
         'OriginalSwimmer': OriginalSwimmerEnv,
         'OriginalHumanoid': OriginalHumanoidEnv,
         'OriginalHopper': OriginalHopperEnv,
+
         'HalfCheetah': HalfCheetahEnv,
         'Walker2D': Walker2dEnv,
         'Ant': AntEnv,
