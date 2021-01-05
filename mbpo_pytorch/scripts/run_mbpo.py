@@ -167,8 +167,8 @@ def main():
 
             if i % config.log_interval == 0:
                 time_elapsed = time.time() - start
-                num_env_steps = epoch * config.env.max_episode_steps + i
-                log_infos = [('time_elapsed', time_elapsed), ('/fps', num_env_steps / time_elapsed)]
+                num_env_steps = epoch * config.env.max_episode_steps + i + mb_config.num_warmup_samples
+                log_infos = [('time_elapsed', time_elapsed), ('/samples_collected', num_env_steps)]
 
                 if len(real_episode_rewards) > 0:
                     log_infos.extend([('perf/ep_rew_real', np.mean(real_episode_rewards)),

@@ -1,7 +1,8 @@
 from __future__ import annotations
+
 import abc
 from abc import ABC
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Any
 from operator import itemgetter
 
 import numpy as np
@@ -42,37 +43,25 @@ class VecVirtualEnv(VecEnv, ABC):
         self.env = env
         self.env.seed(seed)
 
-        self.action_lo_np = self.action_space.low
-        self.action_hi_np = self.action_space.high
         self.actions = None
-
-        self.action_lo_torch = torch.tensor(self.action_space.low, dtype=torch.float32, device=self.device)
-        self.action_hi_torch = torch.tensor(self.action_space.high, dtype=torch.float32, device=self.device)
 
         if num_envs:
             self.elapsed_steps = np.zeros([self.num_envs], dtype=np.int32)
             self.episode_rewards = np.zeros([self.num_envs])
             self.states = np.zeros([self.num_envs, self.observation_space.shape[0]], dtype=np.float32)
 
-    def _rescale_action_torch(self, actions: torch.Tensor) -> torch.Tensor:
-        return self.action_lo_torch + (actions + 1.) * 0.5 * (self.action_hi_torch - self.action_lo_torch)
-
-    def _rescale_action_np(self, actions: np.ndarray) -> np.ndarray:
-        return self.action_lo_np + (actions + 1.) * 0.5 * (self.action_hi_np - self.action_lo_np)
-
     def step_with_states(self, states: torch.Tensor, actions: torch.Tensor, **kwargs):
-        rescaled_actions = self._rescale_action_torch(actions)
 
         with torch.no_grad():
             if self.use_predicted_reward:
                 next_states, rewards = itemgetter('next_states', 'rewards')(self.dynamics.predict(
                     states.to(self.device), actions.to(self.device), **kwargs))
-                _, dones = self.env.mb_step(states.cpu().numpy(), rescaled_actions.cpu().numpy(),
+                _, dones = self.env.mb_step(states.cpu().numpy(), actions.cpu().numpy(),
                                             next_states.cpu().numpy())
             else:
                 next_states, rewards = itemgetter('next_states')(self.dynamics.predict(
                     states.to(self.device), actions.to(self.device), **kwargs))
-                rewards, dones = self.env.mb_step(states.cpu().numpy(), rescaled_actions.cpu().numpy(),
+                rewards, dones = self.env.mb_step(states.cpu().numpy(), actions.cpu().numpy(),
                                                   next_states.cpu().numpy())
                 rewards = torch.tensor(rewards, device=self.device, dtype=torch.float32)
 
@@ -84,7 +73,6 @@ class VecVirtualEnv(VecEnv, ABC):
 
     def step_wait(self):
         assert self.num_envs
-        rescaled_actions = self._rescale_action_np(self.actions)
         self.elapsed_steps += 1
 
         with torch.no_grad():
@@ -93,13 +81,13 @@ class VecVirtualEnv(VecEnv, ABC):
                     torch.tensor(self.states, device=self.device, dtype=torch.float32),
                     torch.tensor(self.actions, device=self.device, dtype=torch.float32)))
                 next_states, rewards = next_states.cpu().numpy(), rewards.cpu().numpy()
-                _, dones = self.env.mb_step(self.states, rescaled_actions, next_states)
+                _, dones = self.env.mb_step(self.states, self.actions, next_states)
             else:
                 next_states, rewards = itemgetter('next_states')(self.dynamics.predict(
                     torch.tensor(self.states, device=self.device, dtype=torch.float32),
                     torch.tensor(self.actions, device=self.device, dtype=torch.float32)))
                 next_states = next_states.cpu().numpy()
-                rewards, dones = self.env.mb_step(self.states, rescaled_actions, next_states)
+                rewards, dones = self.env.mb_step(self.states, self.actions, next_states)
 
         self.episode_rewards += rewards
         self.states = next_states.copy()
@@ -119,7 +107,7 @@ class VecVirtualEnv(VecEnv, ABC):
         return self.states.copy(), rewards.copy(), dones.copy(), info_dicts
 
     # if indices = None, every env will be reset
-    def reset(self, indices=None) -> np.ndarray:
+    def reset(self, indices: Optional[np.array] = None) -> np.ndarray:
         assert self.num_envs
         # have to distinguish [] and None
         indices = np.arange(self.num_envs) if indices is None else indices
@@ -132,7 +120,7 @@ class VecVirtualEnv(VecEnv, ABC):
         return states.copy()
 
     # if indices = None, every env will be set
-    def set_states(self, states: np.ndarray, indices=None):
+    def set_states(self, states: np.ndarray,  indices: Optional[np.array] = None):
         assert self.num_envs
         indices = indices or np.arange(self.num_envs)
         assert states.ndim == 2 and states.shape[0] == indices.shape[0]
@@ -150,12 +138,12 @@ class VecVirtualEnv(VecEnv, ABC):
     def render(self, mode='human'):
         raise NotImplemented
 
-    def set_attr(self, attr_name, value, indices=None):
+    def set_attr(self, attr_name: str, value: Any, indices: Optional[np.array] = None):
         raise NotImplemented
 
-    def get_attr(self, attr_name, indices=None):
+    def get_attr(self, attr_name: str, indices: Optional[np.array] = None):
         raise NotImplemented
 
-    def env_method(self, method_name, *method_args, indices=None, **method_kwargs):
+    def env_method(self, method_name, *method_args, indices: Optional[np.array] = None, **method_kwargs):
         raise NotImplemented
 

@@ -121,8 +121,7 @@ class Normalizers(nn.Module, ABC):
                 'state_normalizer': self.state_normalizer.state_dict(),
                 'diff_normalizer': self.diff_normalizer.state_dict()}
 
-    # noinspection PyMethodOverriding, PyTypeChecker
-    def load_state_dict(self, state_dict):
+    def load_state_dict(self, state_dict, stict):
         self.action_normalizer.load_state_dict(state_dict['action_normalizer'])
         self.state_normalizer.load_state_dict(state_dict['state_normalizer'])
         self.diff_normalizer.load_state_dict(state_dict['diff_normalizer'])

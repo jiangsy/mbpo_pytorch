@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from operator import itemgetter
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Optional
 
 import numpy as np
 import torch
@@ -9,7 +9,6 @@ import torch.nn.functional as F
 from torch.distributions import Normal
 
 from .initializer import truncated_norm_init
-from .normalizer import RunningNormalizer
 from .utils import MLP, init
 
 
@@ -17,33 +16,6 @@ class BaseDynamics(nn.Module, ABC):
     @abstractmethod
     def predict(self, states, actions, **kwargs) -> Dict[str, torch.Tensor]:
         pass
-
-
-class Dynamics(BaseDynamics, ABC):
-    def __init__(self, state_dim: int, action_dim: int, hidden_dims: List[int],
-                 state_normalizer: RunningNormalizer = None, diff_normalizer: RunningNormalizer = None):
-        super(Dynamics, self).__init__()
-        self.dim_state = state_dim
-        self.dim_action = action_dim
-        self.state_normalizer = state_normalizer or nn.Identity()
-        self.diff_normalizer = diff_normalizer or nn.Identity()
-        self.diff_dynamics = MLP(state_dim + action_dim, state_dim, hidden_dims, activation='relu')
-
-        init_ = lambda m: init(m, truncated_norm_init, lambda x: nn.init.constant_(x, 0))
-        self.diff_dynamics.init(init_, init_)
-
-    def forward(self, states, actions):
-        # action clip is the best normalization according to the authors
-        x = torch.cat([self.state_normalizer(states), actions.clamp(-1., 1.)], dim=-1)
-        normalized_diff = self.diff_dynamics(x)
-        next_states = states + self.diff_normalizer(normalized_diff, inverse=True)
-        next_states = self.normalizer.state_normalizer(self.state_normalizer(next_states).clamp(-100, 100),
-                                                       inverse=True)
-        return next_states
-
-    def predict(self, states, actions, **kwargs):
-        next_states = self.forward(states, actions)
-        return {'next_states': next_states}
 
 
 class RDynamics(BaseDynamics, ABC):
@@ -104,11 +76,6 @@ class EnsembleRDynamics(BaseDynamics, ABC):
         self.num_elite_networks = num_elite_networks
         self.elite_indices = None
 
-        def backward_hook_fn(x: nn.Module, grad_input, grad_output):
-            x.elite_indices = None
-            return None
-        self.register_backward_hook(backward_hook_fn)
-
         self.best_snapshots = [(None, 0, None) for _ in self.networks]
 
     def load(self, load_path):
@@ -119,14 +86,9 @@ class EnsembleRDynamics(BaseDynamics, ABC):
         assert use_factored
 
         states, actions = self.state_normalizer(states), self.action_normalizer(actions)
-        ndim = states.ndim
-        if ndim == 3:
-            assert states.shape[0] == self.num_networks
-            outputs = [network(states_, actions_) for network, states_, actions_ in zip(self.networks, states, actions)]
-        elif ndim == 2:
-            outputs = [network(states, actions) for network in self.networks]
-        else:
-            assert False
+
+        assert states.ndim == actions.ndim == 2
+        outputs = [network(states, actions) for network in self.networks]
 
         outputs = {k: [dic[k] for dic in outputs] for k in outputs[0]}
 
@@ -144,7 +106,7 @@ class EnsembleRDynamics(BaseDynamics, ABC):
         factored_reward_logvars = self.max_reward_logvar - F.softplus(self.max_reward_logvar - factored_reward_logvars)
         factored_reward_logvars = self.min_reward_logvar + F.softplus(factored_reward_logvars - self.min_reward_logvar)
 
-        if ndim == 2 and not use_factored:
+        if not use_factored:
             diff_state_means = torch.mean(factored_diff_state_means, dim=0)
             diff_state_vars = torch.mean((factored_diff_state_means - diff_state_means) ** 2, dim=0) + \
                               torch.mean(torch.exp(factored_diff_state_logvars), dim=0)
@@ -202,14 +164,12 @@ class EnsembleRDynamics(BaseDynamics, ABC):
             next_states = states + diff_states
             return {'next_states': next_states, 'rewards': rewards}
 
-    def update_best_snapshots(self, losses, epoch) -> bool:
-        # assert losses.ndim == 1 and losses.shape[0] == self.num_networks and torch.all(losses.isfinite()).item()
+    def update_best_snapshots(self, losses: torch.Tensor, epoch: int) -> bool:
         updated = False
         for idx, (loss, snapshot) in enumerate(zip(losses, self.best_snapshots)):
             loss = loss.item()
-            best_loss = snapshot[0]
-            if best_loss is not None:
-                improvement_ratio = (best_loss - loss) / best_loss
+            best_loss: Optional[float] = snapshot[0]
+            improvement_ratio = ((best_loss - loss) / best_loss) if best_loss else 0.
             if (best_loss is None) or improvement_ratio > 0.01:
                 self.best_snapshots[idx] = (loss, epoch, self.networks[idx].state_dict())
                 updated = True

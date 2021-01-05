@@ -12,8 +12,7 @@ from mbpo_pytorch.misc import logger
 
 # noinspection DuplicatedCode
 class SimpleUniversalBuffer:
-    def __init__(self, buffer_size: int,
-                 entry_dict: Dict[str, dict], **kwargs):
+    def __init__(self, buffer_size: int, entry_dict: Dict[str, dict], **kwargs):
         self.entry_infos = entry_dict.copy()
         self.entries = self.entry_infos.keys()
         self.entry_num_classes = {}

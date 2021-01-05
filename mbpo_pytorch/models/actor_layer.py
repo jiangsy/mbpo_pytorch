@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 
-from mbpo_pytorch.misc.distributions import FixedNormal, FixedCategorical, FixedBernoulli, TanhNormal, FixedLimitedEntNormal
+from mbpo_pytorch.misc.distributions import FixedNormal, FixedCategorical, FixedBernoulli, \
+    TanhNormal, FixedLimitedEntNormal
 from .utils import init
 
 
