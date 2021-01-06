@@ -2,17 +2,14 @@ from __future__ import annotations
 
 import os
 import random
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional
 
 import numpy as np
 import torch
-from torch.utils.tensorboard import SummaryWriter
 
 from mbpo_pytorch.envs.wrapped_envs import make_vec_envs, get_vec_normalize
 from mbpo_pytorch.misc import logger
-
-if TYPE_CHECKING:
-    from mbpo_pytorch.storages import SimpleUniversalBuffer
+from mbpo_pytorch.thirdparty.summary_writer import FixedSummaryWriter as SummaryWriter
 
 
 def log_and_write(logger, writer: SummaryWriter, log_infos: List, global_step: int):
@@ -23,25 +20,6 @@ def log_and_write(logger, writer: SummaryWriter, log_infos: List, global_step: i
             writer.add_scalar(name, value, global_step=global_step)
     if logger is not None:
         logger.dumpkvs()
-
-
-def collect_traj(actor, envs, initial_states: Optional[torch.Tensor], buffer: SimpleUniversalBuffer, num_steps: int):
-    episode_rewards = []
-    episode_lengths = []
-
-    states = initial_states or envs.reset()
-    for _ in range(num_steps):
-        with torch.no_grad():
-            actions = actor.act(states, deterministic=False, reparameterize=False)['actions']
-
-        next_states, rewards, dones, infos = envs.step(actions)
-        masks = torch.tensor([[0.0] if done_ else [1.0] for done_ in dones], dtype=torch.float32)
-        buffer.insert(states=states, actions=actions, rewards=rewards, masks=masks, next_states=next_states)
-        states = next_states
-        episode_rewards.extend([info['episode']['r'] for info in infos if 'episode' in info])
-        episode_lengths.extend([info['episode']['l'] for info in infos if 'episode' in info])
-
-    return episode_rewards, episode_lengths
 
 
 def evaluate(actor, env_name, seed, num_episode, eval_log_dir,

@@ -98,12 +98,7 @@ class TanhGaussainActorLayer(nn.Module):
 
     def forward(self, x):
         action_mean = self.actor_mean(x)
-
-        if self.state_dependent_std:
-            action_logstd = self.actor_logstd(x)
-        else:
-            action_logstd = self.logstd
-
+        action_logstd = self.actor_logstd(x)
         action_logstd = torch.clamp(action_logstd, -20, 2)
 
         return TanhNormal(action_mean, action_logstd.exp()), torch.tanh(action_mean), action_logstd

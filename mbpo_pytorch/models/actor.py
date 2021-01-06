@@ -28,23 +28,8 @@ class Actor(nn.Module, ABC):
 
         self.state_normalizer = state_normalizer or nn.Identity()
 
-        if action_space.__class__.__name__ == "Discrete":
-            action_dim = action_space.n
-            self.actor_layer = CategoricalActorLayer(hidden_dims[-1], action_dim)
-        elif action_space.__class__.__name__ == "Box":
-            action_dim = action_space.shape[0]
-            if use_limited_entropy:
-                self.actor_layer = LimitedEntGaussianActorLayer(hidden_dims[-1], action_dim, use_state_dependent_std)
-            elif use_tanh_squash:
-                self.actor_layer = TanhGaussainActorLayer(hidden_dims[-1], action_space.shape[0],
-                                                          use_state_dependent_std)
-            else:
-                self.actor_layer = GaussianActorLayer(hidden_dims[-1], action_dim, use_state_dependent_std)
-        elif action_space.__class__.__name__ == "MultiBinary":
-            action_dim = action_space.shape[0]
-            self.actor_layer = BernoulliActorLayer(hidden_dims[-1], action_dim)
-        else:
-            raise NotImplementedError
+        self.actor_layer = TanhGaussainActorLayer(hidden_dims[-1], action_space.shape[0],
+                                                  use_state_dependent_std)
 
         init_ = lambda m: init(m, normc_init, lambda x: nn.init.constant_(x, 0))
         self.actor_feature.init(init_, init_)
@@ -63,12 +48,8 @@ class Actor(nn.Module, ABC):
                 result = action_dist.rsample()
             else:
                 result = action_dist.sample()
-            if self.use_tanh_squash:
-                actions, pretanh_actions = result
-                log_probs = action_dist.log_probs(actions, pretanh_actions)
-            else:
-                actions = result
-                log_probs = action_dist.log_probs(actions)
+            actions, pretanh_actions = result
+            log_probs = action_dist.log_probs(actions, pretanh_actions)
 
         entropy = action_dist.entropy().mean()
 
