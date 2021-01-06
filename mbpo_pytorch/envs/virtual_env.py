@@ -123,7 +123,6 @@ class VecVirtualEnv(VecEnv, ABC):
     def set_states(self, states: np.ndarray,  indices: Optional[np.array] = None):
         assert self.num_envs
         indices = indices or np.arange(self.num_envs)
-        assert states.ndim == 2 and states.shape[0] == indices.shape[0]
         self.states[indices] = states.copy()
         # set_state should reset reward and length
         self.elapsed_steps[indices] = 0

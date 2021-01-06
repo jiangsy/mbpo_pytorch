@@ -81,13 +81,10 @@ class EnsembleRDynamics(BaseDynamics, ABC):
     def load(self, load_path):
         pass
 
-    def forward(self, states, actions, use_factored=False) -> Dict[str, torch.Tensor]:
-        assert states.ndim == actions.ndim
-        assert use_factored
+    def forward(self, states, actions) -> Dict[str, torch.Tensor]:
 
         states, actions = self.state_normalizer(states), self.action_normalizer(actions)
 
-        assert states.ndim == actions.ndim == 2
         outputs = [network(states, actions) for network in self.networks]
 
         outputs = {k: [dic[k] for dic in outputs] for k in outputs[0]}
@@ -106,22 +103,6 @@ class EnsembleRDynamics(BaseDynamics, ABC):
         factored_reward_logvars = self.max_reward_logvar - F.softplus(self.max_reward_logvar - factored_reward_logvars)
         factored_reward_logvars = self.min_reward_logvar + F.softplus(factored_reward_logvars - self.min_reward_logvar)
 
-        if not use_factored:
-            diff_state_means = torch.mean(factored_diff_state_means, dim=0)
-            diff_state_vars = torch.mean((factored_diff_state_means - diff_state_means) ** 2, dim=0) + \
-                              torch.mean(torch.exp(factored_diff_state_logvars), dim=0)
-            reward_means = torch.mean(factored_reward_means, dim=0)
-            reward_vars = torch.mean((factored_reward_means - reward_means) ** 2, dim=0) + \
-                          torch.mean(torch.exp(factored_reward_logvars), dim=0)
-
-            # return batch_size * dim
-            return {'diff_states': diff_state_means,
-                    'diff_state_means': diff_state_means,
-                    'diff_state_logvars': diff_state_vars,
-                    'rewards': reward_means,
-                    'reward_means': reward_means,
-                    'reward_logvars': reward_vars}
-
         # return num_ensemble * batch_size * dim
         return {'diff_state_means': factored_diff_state_means,
                 'diff_state_logvars': factored_diff_state_logvars,
@@ -133,7 +114,6 @@ class EnsembleRDynamics(BaseDynamics, ABC):
         return torch.stack(l2_losses, dim=0)
 
     def update_elite_indices(self, losses: torch.Tensor) -> np.ndarray:
-        assert losses.ndim == 1 and losses.shape[0] == self.num_networks
         elite_indices = torch.argsort(losses)[:self.num_elite_networks].cpu().numpy()
         self.elite_indices = elite_indices.copy()
         return elite_indices
@@ -146,7 +126,7 @@ class EnsembleRDynamics(BaseDynamics, ABC):
         indices = np.random.choice(self.elite_indices, batch_size)
         diff_state_means, diff_state_logvars, reward_means, reward_logvars = \
             itemgetter('diff_state_means', 'diff_state_logvars', 'reward_means', 'reward_logvars')\
-                (self.forward(states, actions, True))
+                (self.forward(states, actions))
 
         diff_state_means, diff_state_logvars = diff_state_means[indices, np.arange(batch_size)], \
                                                diff_state_logvars[indices, np.arange(batch_size)]

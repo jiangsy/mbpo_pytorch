@@ -51,7 +51,7 @@ class MBPO:
 
         diff_state_means, diff_state_logvars, reward_means, reward_logvars = \
             itemgetter('diff_state_means', 'diff_state_logvars', 'reward_means', 'reward_logvars') \
-                (self.dynamics.forward(states, actions, use_factored=True))
+                (self.dynamics.forward(states, actions))
 
         means, logvars = torch.cat([diff_state_means, reward_means], dim=-1), \
                          torch.cat([diff_state_logvars, reward_logvars], dim=-1)
