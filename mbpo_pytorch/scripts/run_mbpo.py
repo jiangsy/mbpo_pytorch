@@ -16,7 +16,7 @@ from mbpo_pytorch.storages import SimpleUniversalBuffer as Buffer, MixtureBuffer
 
 # noinspection DuplicatedCode
 def main():
-    config, hparam_dict = Config('mbpo.yaml')
+    config, hparam_dict = Config(['mbpo.yaml', 'halfcheetah.yaml', 'priv.yaml'])
     set_seed(config.seed)
     commit_and_save(config.proj_dir, config.save_dir, False, False)
 
@@ -165,10 +165,11 @@ def main():
 
             losses.update(agent.update(policy_buffer))
 
+            # only keys with '/' will be recorded in the tensorboard
             if i % config.log_interval == 0:
                 time_elapsed = time.time() - start
                 num_env_steps = epoch * config.env.max_episode_steps + i + mb_config.num_warmup_samples
-                log_infos = [('time_elapsed', time_elapsed), ('/samples_collected', num_env_steps)]
+                log_infos = [('/time_elapsed', time_elapsed), ('samples_collected', num_env_steps)]
 
                 if len(real_episode_rewards) > 0:
                     log_infos.extend([('perf/ep_rew_real', np.mean(real_episode_rewards)),
@@ -182,7 +183,8 @@ def main():
                 evaluate(actor, config.env.env_name, get_seed(), 10, None, device, norm_reward=False, norm_obs=False)
             log_infos = [('perf/ep_rew_real_eval', np.mean(episode_rewards_real_eval)),
                          ('perf/ep_len_real_eval', np.mean(episode_lengths_real_eval))]
-            log_and_write(logger, writer, log_infos, global_step=(epoch + 1) * config.env.max_episode_steps)
+            log_and_write(logger, writer, log_infos,
+                          global_step=(epoch + 1) * config.env.max_episode_steps + mb_config.num_warmup_samples)
 
         if (epoch + 1) % config.save_interval == 0:
             state_dicts = {'dynamics': dynamics.state_dict(), 'actor': actor.state_dict(),

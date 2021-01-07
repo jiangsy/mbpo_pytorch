@@ -1,6 +1,6 @@
 proj_name: 'MBPO'
 mf_algo: 'sac'
-proj_dir: ~
+proj_dir: '~'
 result_dir: './result'
 save_dir: './save'
 device: 'cuda:0' # e.g 'cpu', 'cuda', 'cuda:0'
