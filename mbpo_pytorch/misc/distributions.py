@@ -2,6 +2,7 @@ import torch
 from torch.distributions import Distribution, Normal
 import math
 
+
 class TanhNormal(Distribution):
     """
     Represent distribution of X where

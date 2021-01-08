@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC
 from typing import List, Optional
 
-from .initializer import normc_init
+from .initializer import fanin_init
 from .utils import MLP
 from .actor_layer import *
 
@@ -31,7 +31,7 @@ class Actor(nn.Module, ABC):
         self.actor_layer = TanhGaussainActorLayer(hidden_dims[-1], action_space.shape[0],
                                                   use_state_dependent_std)
 
-        init_ = lambda m: init(m, normc_init, lambda x: nn.init.constant_(x, 0))
+        init_ = lambda m: init(m, fanin_init, lambda x: nn.init.constant_(x, 0))
         self.actor_feature.init(init_, init_)
 
     def act(self, state, deterministic=False, reparameterize=False):

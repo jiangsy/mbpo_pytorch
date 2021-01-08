@@ -14,7 +14,6 @@ from mbpo_pytorch.models import Actor, QCritic, RunningNormalizer, EnsembleRDyna
 from mbpo_pytorch.storages import SimpleUniversalBuffer as Buffer, MixtureBuffer
 
 
-# noinspection DuplicatedCode
 def main():
     config, hparam_dict = Config(['mbpo.yaml', 'halfcheetah.yaml', 'priv.yaml'])
     set_seed(config.seed)
@@ -176,14 +175,15 @@ def main():
                                       ('perf/ep_len_real', np.mean(real_episode_lengths))])
                 for loss_name, loss_value in losses.items():
                     log_infos.append(('loss/' + loss_name, loss_value))
-                log_and_write(logger, writer, log_infos, global_step=num_env_steps)
+                log_and_write(writer, log_infos, global_step=num_env_steps)
 
         if (epoch + 1) % config.eval_interval == 0:
             episode_rewards_real_eval, episode_lengths_real_eval = \
-                evaluate(actor, config.env.env_name, get_seed(), 10, None, device, norm_reward=False, norm_obs=False)
+                evaluate(actor, config.env.env_name, get_seed(), 10, eval_log_dir,
+                         device, norm_reward=False, norm_obs=False)
             log_infos = [('perf/ep_rew_real_eval', np.mean(episode_rewards_real_eval)),
                          ('perf/ep_len_real_eval', np.mean(episode_lengths_real_eval))]
-            log_and_write(logger, writer, log_infos,
+            log_and_write(writer, log_infos,
                           global_step=(epoch + 1) * config.env.max_episode_steps + mb_config.num_warmup_samples)
 
         if (epoch + 1) % config.save_interval == 0:
@@ -191,7 +191,7 @@ def main():
                            'q_critic1': q_critic1.state_dict(), 'q_critic2': q_critic2.state_dict(),
                            'q_critic_target1': q_critic_target1.state_dict(),
                            'q_critic_target2': q_critic_target2.state_dict()}
-            torch.save(state_dicts, save_dir + '/model_state_dicts.pt')
+            torch.save(state_dicts, save_dir + '/state_dicts.pt')
             real_buffer.save(save_dir + '/real_buffer.pt')
 
 

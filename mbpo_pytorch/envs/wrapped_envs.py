@@ -34,7 +34,7 @@ def make_env(env_id, seed, rank, log_dir, allow_early_resets, max_episode_steps)
 def make_vec_envs(env_name: str,
                   seed: int,
                   num_envs: int,
-                  gamma: float,
+                  gamma: Optional[float],
                   log_dir: Optional[str],
                   device: torch.device,
                   allow_early_resets: bool,

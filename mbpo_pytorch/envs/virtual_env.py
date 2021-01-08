@@ -131,10 +131,10 @@ class VecVirtualEnv(VecEnv, ABC):
     def close(self):
         pass
 
-    def seed(self, seed):
-        return self.env.seed(seed)
+    def seed(self, seed: Optional[int] = None):
+        return [self.env.seed(seed)]
 
-    def render(self, mode='human'):
+    def render(self, mode='human', **kwargs):
         raise NotImplemented
 
     def set_attr(self, attr_name: str, value: Any, indices: Optional[np.array] = None):

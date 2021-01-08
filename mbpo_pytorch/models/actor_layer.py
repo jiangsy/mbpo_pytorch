@@ -91,10 +91,11 @@ class TanhGaussainActorLayer(nn.Module):
         self.state_dependent_std = use_state_dependent_std
         if self.state_dependent_std:
             self.actor_logstd = nn.Linear(num_inputs, num_outputs)
-            init(self.actor_mean, lambda x: nn.init.uniform_(x, -init_w, init_w),
+            init(self.actor_logstd, lambda x: nn.init.uniform_(x, -init_w, init_w),
                  lambda x: nn.init.uniform_(x, -init_w, init_w))
         else:
             self.logstd = nn.Parameter(torch.zeros(num_outputs), requires_grad=True)
+            self.actor_logstd = lambda _: self.logstd
 
     def forward(self, x):
         action_mean = self.actor_mean(x)

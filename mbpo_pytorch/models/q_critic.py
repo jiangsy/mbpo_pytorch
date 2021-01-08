@@ -14,7 +14,8 @@ class QCritic(nn.Module):
 
         if action_space.__class__.__name__ == 'Discrete':
             action_dim = action_space.n
-        elif action_space.__class__.__name__ == 'Box':
+        else:
+            assert action_space.__class__.__name__ == 'Box'
             action_dim = action_space.shape[0]
 
         if use_multihead_output:

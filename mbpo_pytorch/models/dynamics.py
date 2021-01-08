@@ -5,7 +5,7 @@ from typing import List, Dict, Union, Optional
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+from torch.nn.functional import softplus
 from torch.distributions import Normal
 
 from .initializer import truncated_norm_init
@@ -97,11 +97,11 @@ class EnsembleRDynamics(BaseDynamics, ABC):
             rewards[..., :self.reward_dim], rewards[..., self.reward_dim:]
 
         factored_diff_state_logvars = self.max_state_logvar -\
-                                       F.softplus(self.max_state_logvar - factored_diff_state_logvars)
-        factored_diff_state_logvars = self.min_state_logvar + \
-                                       F.softplus(factored_diff_state_logvars - self.min_state_logvar)
-        factored_reward_logvars = self.max_reward_logvar - F.softplus(self.max_reward_logvar - factored_reward_logvars)
-        factored_reward_logvars = self.min_reward_logvar + F.softplus(factored_reward_logvars - self.min_reward_logvar)
+                                      softplus(self.max_state_logvar - factored_diff_state_logvars)
+        factored_diff_state_logvars = self.min_state_logvar +\
+                                      softplus(factored_diff_state_logvars - self.min_state_logvar)
+        factored_reward_logvars = self.max_reward_logvar - softplus(self.max_reward_logvar - factored_reward_logvars)
+        factored_reward_logvars = self.min_reward_logvar + softplus(factored_reward_logvars - self.min_reward_logvar)
 
         # return num_ensemble * batch_size * dim
         return {'diff_state_means': factored_diff_state_means,

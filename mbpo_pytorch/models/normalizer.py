@@ -8,7 +8,7 @@ from mbpo_pytorch.thirdparty.running_mean_std import RunningMeanStd
 
 
 class RunningNormalizer(nn.Module, ABC):
-    def __init__(self, shape: List[int], eps=1e-8, verbose=0):  # batch_size x ...
+    def __init__(self, shape: List[int], eps=1e-8, verbose=0):
         super().__init__()
 
         self.shape = shape
@@ -50,7 +50,7 @@ class RunningNormalizer(nn.Module, ABC):
     def state_dict(self, *args, **kwargs):
         return {'mean': self.mean, 'var': self.var, 'count': self.count}
 
-    def load_state_dict(self, state_dict):
+    def load_state_dict(self, state_dict, strict=True):
         self.mean = state_dict['mean']
         self.var = state_dict['var']
         self.count = state_dict['count']
@@ -89,39 +89,10 @@ class BatchNormalizer(nn.Module, ABC):
         self.mean = torch.mean(samples, dim=0)
         self.std = torch.std(samples, dim=0)
 
-    # noinspection PyMethodOverriding
     def state_dict(self, *args, **kwargs):
         return {'mean': self.mean, 'std': self.std}
 
-    # noinspection PyMethodOverriding
-    def load_state_dict(self, state_dict):
+    def load_state_dict(self, state_dict, strict=True):
         self.mean = state_dict['mean']
         self.std = state_dict['std']
 
-
-class Normalizers(nn.Module, ABC):
-    def __init__(self, dim_action: int, dim_state: int, verbose=0):
-        super().__init__()
-        # action_normalizer is not used
-        self.action_normalizer = RunningNormalizer([dim_action], verbose=verbose)
-        self.state_normalizer = RunningNormalizer([dim_state], verbose=verbose)
-        self.diff_normalizer = RunningNormalizer([dim_state], verbose=verbose)
-
-    def forward(self):
-        raise NotImplemented
-
-    def to(self, *args, **kwargs):
-        self.action_normalizer.to(*args, **kwargs)
-        self.state_normalizer.to(*args, **kwargs)
-        self.diff_normalizer.to(*args, **kwargs)
-
-    # noinspection PyMethodOverriding
-    def state_dict(self, *args, **kwargs):
-        return {'action_normalizer': self.action_normalizer.state_dict(),
-                'state_normalizer': self.state_normalizer.state_dict(),
-                'diff_normalizer': self.diff_normalizer.state_dict()}
-
-    def load_state_dict(self, state_dict, stict):
-        self.action_normalizer.load_state_dict(state_dict['action_normalizer'])
-        self.state_normalizer.load_state_dict(state_dict['state_normalizer'])
-        self.diff_normalizer.load_state_dict(state_dict['diff_normalizer'])

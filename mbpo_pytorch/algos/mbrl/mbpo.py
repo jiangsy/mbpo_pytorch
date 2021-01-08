@@ -145,9 +145,10 @@ class MBPO:
             dx = (epoch - min_epoch) / (max_epoch - min_epoch)
             dx = min(dx, 1)
             y = dx * (max_length - min_length) + min_length
-        if self.verbose > 0 and self.num_rollout_steps != int(y):
-            logger.log('[ Model Rollout ] Max rollout length {} -> {} '.format(self.num_rollout_steps, int(y)))
-        self.num_rollout_steps = int(y)
+        y = int(y)
+        if self.verbose > 0 and self.num_rollout_steps != y:
+            logger.log('[ Model Rollout ] Max rollout length {} -> {} '.format(self.num_rollout_steps, y))
+        self.num_rollout_steps = y
 
     def collect_data(self, virtual_envs: VecVirtualEnv, policy_buffer: Buffer, initial_states: torch.Tensor, actor):
         states = initial_states

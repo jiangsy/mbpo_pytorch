@@ -12,7 +12,7 @@ from mbpo_pytorch.misc import logger
 from mbpo_pytorch.thirdparty.summary_writer import FixedSummaryWriter as SummaryWriter
 
 
-def log_and_write(logger, writer: SummaryWriter, log_infos: List, global_step: int):
+def log_and_write(writer: SummaryWriter, log_infos: List, global_step: int):
     for idx, (name, value) in enumerate(log_infos):
         if logger is not None:
             logger.logkv('{}.'.format(idx) + name.split('/')[-1], value)
@@ -50,6 +50,7 @@ def evaluate(actor, env_name, seed, num_episode, eval_log_dir,
     return eval_episode_rewards, eval_episode_lengths
 
 
+# noinspection PyUnresolvedReferences
 def set_seed(seed: int, strict=False):
     np.random.seed(seed)
     torch.manual_seed(np.random.randint(2 ** 30))
