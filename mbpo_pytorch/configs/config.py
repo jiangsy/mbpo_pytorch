@@ -21,6 +21,28 @@ def flatten(d, parent_key='', sep='.'):
     return dict(items)
 
 
+def safe_eval(exp):
+    try:
+        return eval(exp)
+    except (NameError, SyntaxError):
+        return exp
+
+
+def deflatten_with_eval(d, sep='.'):
+    deflattend_d = {}
+    for k, v in d.items():
+        d = deflattend_d
+        key_seq = k.split(sep)
+        for key in key_seq[:-1]:
+            try:
+                d = d[key]
+            except (TypeError, KeyError):
+                d[key] = {}
+                d = d[key]
+        d[key_seq[-1]] = safe_eval(v)
+    return deflattend_d
+
+
 def change_dict_value_recursive(obj, key_sequence: List[str], value):
     try:
         for key in key_sequence[:-1]:
@@ -57,14 +79,14 @@ class Config:
                 flattened_new_config_dict = flatten(new_config_dict)
                 overwritten_config_dict.update({k: v for k, v in flattened_new_config_dict.items()
                                                 if k in flattened_config_dict.keys() & flattened_new_config_dict})
-                config_dict.update(new_config_dict)
                 flattened_config_dict.update(flattened_new_config_dict)
+                config_dict = deflatten_with_eval(flattened_config_dict)
 
         if args.set:
             for instruction in sum(args.set, []):
                 key, value = instruction.split('=')
-                change_dict_value_recursive(config_dict, key.split('.'), eval(value))
-                overwritten_config_dict.update({key: eval(value)})
+                change_dict_value_recursive(config_dict, key.split('.'), safe_eval(value))
+                overwritten_config_dict.update({key: safe_eval(value)})
 
         for key, value in overwritten_config_dict.items():
             logger.notice('Hyperparams {} has been overwritten to {}.'.format(key, value))

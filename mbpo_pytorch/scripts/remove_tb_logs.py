@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 import shutil
-from tensorboard.backend.event_processing.event_file_inspector import get_inspection_units, print_dict, get_dict_to_print
+from tensorboard.backend.event_processing.event_file_inspector import get_inspection_units, get_dict_to_print
 
 
 parser = ArgumentParser('delete small runs')

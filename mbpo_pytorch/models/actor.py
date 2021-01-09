@@ -1,13 +1,15 @@
 from __future__ import annotations
-from typing import List, Optional, TYPE_CHECKING
 
-from .initializer import normc_init
-from .utils import MLP, init
+from abc import ABC
+from typing import List, Optional
+
+from .initializer import fanin_init
+from .utils import MLP
 from .actor_layer import *
 
 
 # noinspection DuplicatedCode
-class Actor(nn.Module):
+class Actor(nn.Module, ABC):
     def __init__(self, state_dim: int, action_space, hidden_dims: List[int],
                  state_normalizer: Optional[nn.Module], use_limited_entropy=False, use_tanh_squash=False,
                  use_state_dependent_std=False, **kwargs):
@@ -26,25 +28,10 @@ class Actor(nn.Module):
 
         self.state_normalizer = state_normalizer or nn.Identity()
 
-        if action_space.__class__.__name__ == "Discrete":
-            action_dim = action_space.n
-            self.actor_layer = CategoricalActorLayer(hidden_dims[-1], action_dim)
-        elif action_space.__class__.__name__ == "Box":
-            action_dim = action_space.shape[0]
-            if use_limited_entropy:
-                self.actor_layer = LimitedEntGaussianActorLayer(hidden_dims[-1], action_dim, use_state_dependent_std)
-            elif use_tanh_squash:
-                self.actor_layer = TanhGaussainActorLayer(hidden_dims[-1], action_space.shape[0],
-                                                          use_state_dependent_std)
-            else:
-                self.actor_layer = GaussianActorLayer(hidden_dims[-1], action_dim, use_state_dependent_std)
-        elif action_space.__class__.__name__ == "MultiBinary":
-            action_dim = action_space.shape[0]
-            self.actor_layer = BernoulliActorLayer(hidden_dims[-1], action_dim)
-        else:
-            raise NotImplementedError
+        self.actor_layer = TanhGaussainActorLayer(hidden_dims[-1], action_space.shape[0],
+                                                  use_state_dependent_std)
 
-        init_ = lambda m: init(m, normc_init, lambda x: nn.init.constant_(x, 0))
+        init_ = lambda m: init(m, fanin_init, lambda x: nn.init.constant_(x, 0))
         self.actor_feature.init(init_, init_)
 
     def act(self, state, deterministic=False, reparameterize=False):
@@ -61,12 +48,8 @@ class Actor(nn.Module):
                 result = action_dist.rsample()
             else:
                 result = action_dist.sample()
-            if self.use_tanh_squash:
-                actions, pretanh_actions = result
-                log_probs = action_dist.log_probs(actions, pretanh_actions)
-            else:
-                actions = result
-                log_probs = action_dist.log_probs(actions)
+            actions, pretanh_actions = result
+            log_probs = action_dist.log_probs(actions, pretanh_actions)
 
         entropy = action_dist.entropy().mean()
 

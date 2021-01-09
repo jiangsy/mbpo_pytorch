@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from itertools import count
 from operator import itemgetter
 from typing import TYPE_CHECKING, Dict, List
@@ -53,14 +52,14 @@ class MBPO:
 
         diff_state_means, diff_state_logvars, reward_means, reward_logvars = \
             itemgetter('diff_state_means', 'diff_state_logvars', 'reward_means', 'reward_logvars') \
-                (self.dynamics.forward(states, actions, use_factored=True))
+                (self.dynamics.forward(states, actions))
 
         means, logvars = torch.cat([diff_state_means, reward_means], dim=-1), \
                          torch.cat([diff_state_logvars, reward_logvars], dim=-1)
         targets = torch.cat([next_states - states, rewards], dim=-1)
         targets, masks = targets.repeat(means.shape[0], 1, 1), masks.repeat(means.shape[0], 1, 1)
 
-        inv_vars = torch.exp(torch.clamp(-logvars, max=10.0))
+        inv_vars = torch.exp(-logvars)
 
         mse_losses = torch.mean(((means - targets) ** 2) * inv_vars * masks, dim=[-2, -1])
         if use_var_loss:
@@ -99,7 +98,8 @@ class MBPO:
                 train_model_loss, train_l2_loss = self.compute_loss(samples, True, True)
                 train_model_loss, train_l2_loss = train_model_loss.sum(), train_l2_loss.sum()
                 train_model_loss += \
-                    0.01 * (torch.sum(self.dynamics.max_logvar) - torch.sum(self.dynamics.min_logvar))
+                    0.01 * (torch.sum(self.dynamics.max_state_logvar) + torch.sum(self.dynamics.max_reward_logvar) -
+                            torch.sum(self.dynamics.min_state_logvar) + torch.sum(self.dynamics.min_reward_logvar))
 
                 model_loss_epoch += train_model_loss.item()
                 l2_loss_epoch += train_l2_loss.item()
@@ -145,11 +145,11 @@ class MBPO:
             dx = (epoch - min_epoch) / (max_epoch - min_epoch)
             dx = min(dx, 1)
             y = dx * (max_length - min_length) + min_length
-        if self.verbose > 0 and self.num_rollout_steps != int(y):
-            logger.log('[ Model Rollout ] Max rollout length {} -> {} '.format(self.num_rollout_steps, int(y)))
-        self.num_rollout_steps = int(y)
+        y = int(y)
+        if self.verbose > 0 and self.num_rollout_steps != y:
+            logger.log('[ Model Rollout ] Max rollout length {} -> {} '.format(self.num_rollout_steps, y))
+        self.num_rollout_steps = y
 
-    # noinspection PyTypeChecker
     def collect_data(self, virtual_envs: VecVirtualEnv, policy_buffer: Buffer, initial_states: torch.Tensor, actor):
         states = initial_states
         batch_size = initial_states.shape[0]

@@ -1,6 +1,3 @@
-import abc
-
-import gym
 import numpy as np
 
 from .gym.half_cheetah import HalfCheetahEnv
@@ -14,6 +11,12 @@ from .gym.inverted_pendulum import InvertedPendulumEnv
 from .gym.acrobot import AcrobotEnv
 from .gym.cartpole import CartPoleEnv
 from .gym.mountain_car import Continuous_MountainCarEnv
+from .gym.gym_ohalfcheetah import OriginalHalfCheetahEnv
+from .gym.gym_oant import OriginalAntEnv
+from .gym.gym_owalker import OriginalWalkerEnv
+from .gym.gym_oswimmer import OriginalSwimmerEnv
+from .gym.gym_ohopper import OriginalHopperEnv
+from .gym.gym_ohumanoid import OriginalHumanoidEnv
 from .gym import gym_fswimmer
 from .gym import gym_fwalker2d
 from .gym import gym_fhopper
@@ -33,6 +36,13 @@ from .gym import gym_slimhumanoid
 
 def make_benchmarking_env(env_id: str):
     envs = {
+        'OriginalHalfCheetah': OriginalHalfCheetahEnv,
+        'OriginalAnt': OriginalAntEnv,
+        'OriginalWalker': OriginalWalkerEnv,
+        'OriginalSwimmer': OriginalSwimmerEnv,
+        'OriginalHumanoid': OriginalHumanoidEnv,
+        'OriginalHopper': OriginalHopperEnv,
+
         'HalfCheetah': HalfCheetahEnv,
         'Walker2D': Walker2dEnv,
         'Ant': AntEnv,

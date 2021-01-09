@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 from typing import Dict, Generator, Optional
 from operator import itemgetter
 
 import numpy as np
 import torch
-import torch.nn.functional as F
+from torch.nn.functional import one_hot
 from torch.utils.data.sampler import RandomSampler, BatchSampler, SubsetRandomSampler
 
 from mbpo_pytorch.misc import logger
@@ -12,8 +13,7 @@ from mbpo_pytorch.misc import logger
 
 # noinspection DuplicatedCode
 class SimpleUniversalBuffer:
-    def __init__(self, buffer_size: int,
-                 entry_dict: Dict[str, dict], **kwargs):
+    def __init__(self, buffer_size: int, entry_dict: Dict[str, dict], **kwargs):
         self.entry_infos = entry_dict.copy()
         self.entries = self.entry_infos.keys()
         self.entry_num_classes = {}
@@ -93,7 +93,7 @@ class SimpleUniversalBuffer:
                 batch_data[name] = self.__dict__[name][indices].clone().\
                     to(self.device)
                 if name in self.entry_num_classes and getattr(self, 'use_onehot_output', False):
-                    batch_data[name] = F.one_hot(batch_data[name].long(), num_classes=self.entry_num_classes[name]).\
+                    batch_data[name] = one_hot(batch_data[name].long(), num_classes=self.entry_num_classes[name]).\
                         squeeze(-2).float()
             yield batch_data
 
@@ -106,7 +106,7 @@ class SimpleUniversalBuffer:
             for name in self.entry_infos.keys():
                 batch_data[name] = self.__dict__[name][indices].clone().to(self.device)
                 if name in self.entry_num_classes and getattr(self, 'use_onehot_output', False):
-                    batch_data[name] = F.one_hot(batch_data[name].long(), num_classes=self.entry_num_classes[name]).\
+                    batch_data[name] = one_hot(batch_data[name].long(), num_classes=self.entry_num_classes[name]).\
                         squeeze(-2).float()
             yield batch_data
 
@@ -121,7 +121,7 @@ class SimpleUniversalBuffer:
         for name in self.entry_infos.keys():
             batch_data[name] = self.__dict__[name][indices].clone().to(self.device)
             if name in self.entry_num_classes and getattr(self, 'use_onehot_output', False):
-                batch_data[name] = F.one_hot(batch_data[name].long(), num_classes=self.entry_num_classes[name]). \
+                batch_data[name] = one_hot(batch_data[name].long(), num_classes=self.entry_num_classes[name]). \
                     squeeze(-2).float()
         return batch_data
 

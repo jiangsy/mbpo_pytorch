@@ -1,0 +1,6 @@
+sac:
+    target_entropy: -3
+    num_grad_steps: 40
+
+mbpo:
+    rollout_schedule: [ 20, 150, 1, 1 ]

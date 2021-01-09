@@ -1,14 +1,12 @@
-from abc import ABC
-
 import torch
 import torch.nn as nn
 
-from mbpo_pytorch.misc.distributions import FixedNormal, FixedCategorical, FixedBernoulli, TanhNormal, \
-    FixedLimitedEntNormal
+from mbpo_pytorch.misc.distributions import FixedNormal, FixedCategorical, FixedBernoulli, \
+    TanhNormal, FixedLimitedEntNormal
 from .utils import init
 
 
-class CategoricalActorLayer(nn.Module, ABC):
+class CategoricalActorLayer(nn.Module):
     def __init__(self, num_inputs, num_outputs):
         super(CategoricalActorLayer, self).__init__()
 
@@ -20,7 +18,7 @@ class CategoricalActorLayer(nn.Module, ABC):
         return FixedCategorical(logits=x)
 
 
-class GaussianActorLayer(nn.Module, ABC):
+class GaussianActorLayer(nn.Module):
     def __init__(self, num_inputs, num_outputs, use_state_dependent_std):
         super(GaussianActorLayer, self).__init__()
 
@@ -45,7 +43,7 @@ class GaussianActorLayer(nn.Module, ABC):
         return FixedNormal(action_mean, logstd.exp()), action_mean, logstd
 
 
-class LimitedEntGaussianActorLayer(nn.Module, ABC):
+class LimitedEntGaussianActorLayer(nn.Module):
     def __init__(self, num_inputs, num_outputs, use_state_dependent_std):
         super(LimitedEntGaussianActorLayer, self).__init__()
 
@@ -82,7 +80,7 @@ class BernoulliActorLayer(nn.Module):
         return FixedBernoulli(logits=x)
 
 
-class TanhGaussainActorLayer(nn.Module, ABC):
+class TanhGaussainActorLayer(nn.Module):
     def __init__(self, num_inputs, num_outputs, use_state_dependent_std, init_w=1e-3):
         super(TanhGaussainActorLayer, self).__init__()
 
@@ -93,19 +91,15 @@ class TanhGaussainActorLayer(nn.Module, ABC):
         self.state_dependent_std = use_state_dependent_std
         if self.state_dependent_std:
             self.actor_logstd = nn.Linear(num_inputs, num_outputs)
-            init(self.actor_mean, lambda x: nn.init.uniform_(x, -init_w, init_w),
+            init(self.actor_logstd, lambda x: nn.init.uniform_(x, -init_w, init_w),
                  lambda x: nn.init.uniform_(x, -init_w, init_w))
         else:
             self.logstd = nn.Parameter(torch.zeros(num_outputs), requires_grad=True)
+            self.actor_logstd = lambda _: self.logstd
 
     def forward(self, x):
         action_mean = self.actor_mean(x)
-
-        if self.state_dependent_std:
-            action_logstd = self.actor_logstd(x)
-        else:
-            action_logstd = self.logstd
-
+        action_logstd = self.actor_logstd(x)
         action_logstd = torch.clamp(action_logstd, -20, 2)
 
         return TanhNormal(action_mean, action_logstd.exp()), torch.tanh(action_mean), action_logstd
