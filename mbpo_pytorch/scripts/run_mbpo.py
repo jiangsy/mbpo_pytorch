@@ -107,8 +107,8 @@ def main():
 
     real_states = real_envs.reset()
 
-    real_episode_rewards = deque(maxlen=30)
-    real_episode_lengths = deque(maxlen=30)
+    real_episode_rewards = deque(maxlen=1)
+    real_episode_lengths = deque(maxlen=1)
 
     for _ in range(mb_config.num_warmup_samples):
         real_actions = torch.tensor([real_envs.action_space.sample() for _ in range(config.env.num_real_envs)]).to(

@@ -86,8 +86,8 @@ class SAC:
 
             samples = next(data_generator)
 
-            states, actions, rewards, masks, next_states = \
-                itemgetter('states', 'actions', 'rewards', 'masks', 'next_states')(samples)
+            states, actions, rewards, masks, bad_masks, next_states = \
+                itemgetter('states', 'actions', 'rewards', 'masks', 'bad_masks', 'next_states')(samples)
 
             new_actions, log_probs = itemgetter('actions', 'log_probs')(self.actor.act(states, reparameterize=True))
 
@@ -113,11 +113,13 @@ class SAC:
             new_next_actions, new_next_log_probs = \
                 itemgetter('actions', 'log_probs')(self.actor.act(next_states, reparameterize=True))
 
-            target_q_values = torch.min(self.target_q_critic1(next_states, new_next_actions),
+            q_target_next = torch.min(self.target_q_critic1(next_states, new_next_actions),
                                         self.target_q_critic2(next_states, new_next_actions)) \
                               - alpha * new_next_log_probs
 
-            q_target = self.reward_scale * rewards + masks * self.gamma * target_q_values
+            q_target = (self.reward_scale * rewards + masks * self.gamma * q_target_next) * (1 - bad_masks) + \
+                       (torch.min(q1_pred, q2_pred)) * bad_masks
+
             qf1_loss = self.qf_criterion(q1_pred, q_target.detach())
             qf2_loss = self.qf_criterion(q2_pred, q_target.detach())
 

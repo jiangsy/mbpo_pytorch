@@ -44,5 +44,5 @@ mbpo:
     model_update_interval: 250
     rollout_schedule: [20, 150, 1, 15]
     max_num_epochs: ~
-    real_sample_ratio: 0.
+    real_sample_ratio: 0.05
     num_warmup_samples: 5000
