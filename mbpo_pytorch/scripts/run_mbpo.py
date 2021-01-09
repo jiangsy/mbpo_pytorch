@@ -33,15 +33,17 @@ def main():
     action_space = real_envs.action_space
     action_dim = action_space.shape[0]
 
-    datatype = {'states': {'dims': [state_dim]}, 'next_states': {'dims': [state_dim]},
-                'actions': {'dims': [action_dim]}, 'rewards': {'dims': [1]}, 'masks': {'dims': [1]}}
+    datatype = {'states': {'dims': [state_dim]}, 'next_states': {'dims': [state_dim]}, 'rewards': {'dims': [1]},
+                'actions': {'dims': [action_dim]}, 'masks': {'dims': [1]}, 'bad_masks': {'dims': [1]}}
 
-    state_action_normalizer = RunningNormalizer(state_dim + action_dim)
-    state_action_normalizer.to(device)
+    state_normalizer = RunningNormalizer(state_dim)
+    state_normalizer.to(device)
+    action_normalizer = RunningNormalizer(action_dim)
+    action_normalizer.to(device)
 
-    dynamics = FastEnsembleRDynamics(state_dim, action_dim, 1, config.mbpo.dynamics_hidden_dims,
-                                     mb_config.num_dynamics_networks, mb_config.num_elite_dynamics_networks,
-                                     state_action_normalizer)
+    dynamics = EnsembleRDynamics(state_dim, action_dim, 1, config.mbpo.dynamics_hidden_dims,
+                                 mb_config.num_dynamics_networks, mb_config.num_elite_dynamics_networks,
+                                 state_normalizer, action_normalizer)
     dynamics.to(device)
 
     actor = Actor(state_dim, action_space, mf_config.actor_hidden_dims, state_normalizer=None,
@@ -114,8 +116,10 @@ def main():
             device)
         real_next_states, real_rewards, real_dones, real_infos = real_envs.step(real_actions)
         real_masks = torch.tensor([[0.0] if done else [1.0] for done in real_dones], dtype=torch.float32)
+        real_bad_masks = torch.tensor([[0.0] if 'TimeLimit.truncated' in info.keys() else [1.0] for info in real_infos],
+                                      dtype=torch.float32)
         real_buffer.insert(states=real_states, actions=real_actions, rewards=real_rewards, masks=real_masks,
-                           next_states=real_next_states)
+                           next_states=real_next_states, bad_masks=real_bad_masks)
         real_states = real_next_states
 
         real_episode_rewards.extend([info['episode']['r'] for info in real_infos if 'episode' in info])
@@ -124,7 +128,8 @@ def main():
     recent_states, recent_actions = itemgetter('states', 'actions') \
         (real_buffer.get_recent_samples(mb_config.num_warmup_samples - mb_config.model_update_interval))
 
-    state_action_normalizer.update(torch.cat([recent_states, recent_actions], dim=-1))
+    state_normalizer.update(recent_states)
+    action_normalizer.update(recent_actions)
 
     start = time.time()
 
@@ -138,7 +143,8 @@ def main():
             if i % mb_config.model_update_interval == 0:
                 recent_states, recent_actions = itemgetter('states', 'actions') \
                     (real_buffer.get_recent_samples(mb_config.model_update_interval))
-                state_action_normalizer.update(torch.cat([recent_states, recent_actions], dim=-1))
+                state_normalizer.update(recent_states)
+                action_normalizer.update(recent_actions)
 
                 losses.update(model.update(real_buffer))
                 initial_states = next(real_buffer.get_batch_generator_inf(mb_config.rollout_batch_size))['states']

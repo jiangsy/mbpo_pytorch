@@ -118,8 +118,8 @@ class SAC:
                                         self.target_q_critic2(next_states, new_next_actions)) \
                               - alpha * new_next_log_probs
 
-            q_target = (self.reward_scale * rewards + masks * self.gamma * q_target_next) * (1 - bad_masks) + \
-                       (torch.min(q1_pred, q2_pred)) * bad_masks
+            q_target = (self.reward_scale * rewards + masks * self.gamma * q_target_next) * bad_masks + \
+                       (torch.min(q1_pred, q2_pred)) * (1 - bad_masks)
 
             qf1_loss = self.qf_criterion(q1_pred, q_target.detach())
             qf2_loss = self.qf_criterion(q2_pred, q_target.detach())

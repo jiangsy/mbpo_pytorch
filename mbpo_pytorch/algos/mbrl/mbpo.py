@@ -157,10 +157,12 @@ class MBPO:
         for step in range(self.num_rollout_steps):
             with torch.no_grad():
                 actions = actor.act(states)['actions']
-            next_states, rewards, dones, _ = virtual_envs.step_with_states(states, actions)
+            next_states, rewards, dones, infos = virtual_envs.step_with_states(states, actions)
             masks = torch.tensor([[0.0] if done else [1.0] for done in dones], dtype=torch.float32)
+            bad_masks = torch.tensor([[0.0] if 'TimeLimit.truncated' in info.keys() else [1.0] for info in infos],
+                                     dtype=torch.float32)
             policy_buffer.insert(states=states, actions=actions, masks=masks, rewards=rewards,
-                                 next_states=next_states)
+                                 next_states=next_states, bad_masks=bad_masks)
             num_total_samples += next_states.shape[0]
             states = next_states[torch.where(masks > 0.5)[0], :]
             if states.shape[0] == 0:
