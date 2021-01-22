@@ -194,6 +194,10 @@ def main():
             torch.save(state_dicts, save_dir + '/state_dicts.pt')
             real_buffer.save(save_dir + '/real_buffer.pt')
 
+    real_envs.close()
+    virt_envs.close()
+    writer.close()
+
 
 if __name__ == '__main__':
     main()

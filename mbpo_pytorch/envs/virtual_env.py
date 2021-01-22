@@ -129,7 +129,7 @@ class VecVirtualEnv(VecEnv, ABC):
         self.episode_rewards[indices] = 0.
 
     def close(self):
-        pass
+        self.env.close()
 
     def seed(self, seed: Optional[int] = None):
         return [self.env.seed(seed)]
