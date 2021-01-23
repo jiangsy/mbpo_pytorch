@@ -148,7 +148,8 @@ def main():
                 initial_states = next(real_buffer.get_batch_generator_inf(mb_config.rollout_batch_size))['states']
                 new_virtual_buffer_size = base_virtual_buffer_size * model.num_rollout_steps
                 virtual_buffer.resize(new_virtual_buffer_size)
-                model.collect_data(virtual_envs, virtual_buffer, initial_states, actor)
+                virtual_buffer.clear()
+                model.generate_data(virtual_envs, virtual_buffer, initial_states, actor)
 
             with torch.no_grad():
                 real_actions = actor.act(real_states)['actions']

@@ -100,7 +100,7 @@ class SimpleUniversalBuffer:
     def get_batch_generator_epoch(self, batch_size: Optional[int], ranges=None) -> Generator:
         ranges = range(self.size) if ranges is None else ranges
         batch_size = batch_size or len(ranges)
-        sampler = BatchSampler(SubsetRandomSampler(range(self.size)), batch_size, drop_last=True)
+        sampler = BatchSampler(SubsetRandomSampler(ranges), batch_size, drop_last=True)
         for indices in sampler:
             batch_data = {}
             for name in self.entry_infos.keys():

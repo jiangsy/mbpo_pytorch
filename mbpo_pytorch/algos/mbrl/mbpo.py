@@ -64,9 +64,10 @@ class MBPO:
         mse_losses = torch.mean(((means - targets) ** 2) * inv_vars * masks, dim=[-2, -1])
 
         try:
-            if mse_losses.mean() > 0:
+            if mse_losses.mean() > 100:
                 raise OverflowError
         except OverflowError:
+            # https://stackoverflow.com/questions/242485/starting-python-debugger-automatically-on-error
             import traceback, sys, code
             *_, tb = sys.exc_info()
             traceback.print_exc()
@@ -165,7 +166,7 @@ class MBPO:
             logger.log('[ Model Rollout ] Max rollout length {} -> {} '.format(self.num_rollout_steps, y))
         self.num_rollout_steps = y
 
-    def collect_data(self, virtual_envs: VecVirtualEnv, policy_buffer: Buffer, initial_states: torch.Tensor, actor):
+    def generate_data(self, virtual_envs: VecVirtualEnv, policy_buffer: Buffer, initial_states: torch.Tensor, actor):
         states = initial_states
         batch_size = initial_states.shape[0]
         num_total_samples = 0
