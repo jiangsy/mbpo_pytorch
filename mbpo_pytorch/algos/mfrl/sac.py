@@ -64,9 +64,15 @@ class SAC:
         self.total_num_updates = 0
         self._need_to_update_eval_statistics = True
 
+        self._sync_target_network()
+
     @staticmethod
     def check_buffer(buffer):
         assert {'states', 'actions', 'rewards', 'masks', 'next_states'}.issubset(buffer.entry_infos.keys())
+
+    def _sync_target_network(self):
+        soft_update(self.q_critic1, self.target_q_critic1, 1.0)
+        soft_update(self.q_critic2, self.target_q_critic2, 1.0)
 
     def update(self, policy_buffer: Buffer) -> Dict[str, float]:
 

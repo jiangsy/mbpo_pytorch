@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from itertools import count
 from operator import itemgetter
-from typing import TYPE_CHECKING, Dict, List
+from typing import Dict, List, TYPE_CHECKING
 
 import numpy as np
 import torch
@@ -62,6 +62,21 @@ class MBPO:
         inv_vars = torch.exp(-logvars)
 
         mse_losses = torch.mean(((means - targets) ** 2) * inv_vars * masks, dim=[-2, -1])
+
+        try:
+            if mse_losses.mean() > 100:
+                raise OverflowError
+        except OverflowError:
+            # https://stackoverflow.com/questions/242485/starting-python-debugger-automatically-on-error
+            import traceback, sys, code
+            *_, tb = sys.exc_info()
+            traceback.print_exc()
+            last_frame = lambda tb: last_frame(tb.tb_next) if tb.tb_next else tb
+            frame = last_frame(tb).tb_frame
+            ns = dict(frame.f_globals)
+            ns.update(frame.f_locals)
+            code.interact(local=ns)
+
         if use_var_loss:
             var_losses = torch.mean(logvars * masks, dim=[-2, -1])
             model_losses = mse_losses + var_losses
@@ -151,7 +166,7 @@ class MBPO:
             logger.log('[ Model Rollout ] Max rollout length {} -> {} '.format(self.num_rollout_steps, y))
         self.num_rollout_steps = y
 
-    def collect_data(self, virtual_envs: VecVirtualEnv, policy_buffer: Buffer, initial_states: torch.Tensor, actor):
+    def generate_data(self, virtual_envs: VecVirtualEnv, policy_buffer: Buffer, initial_states: torch.Tensor, actor):
         states = initial_states
         batch_size = initial_states.shape[0]
         num_total_samples = 0

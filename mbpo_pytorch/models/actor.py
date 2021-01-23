@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from abc import ABC
 from typing import List, Optional
 
 from .initializer import fanin_init
