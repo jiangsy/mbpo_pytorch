@@ -86,7 +86,7 @@ class FixedCategorical(torch.distributions.Categorical, ABC):
         return self.probs.argmax(dim=-1, keepdim=True)
 
 
-class FixedNormal(torch.distributions.Normal):
+class FixedNormal(torch.distributions.Normal, ABC):
 
     def log_probs(self, actions):
         return super().log_prob(actions).sum(-1, keepdim=True)
