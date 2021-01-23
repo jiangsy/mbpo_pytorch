@@ -1,9 +1,11 @@
+from abc import ABC
+
 import torch
 from torch.distributions import Distribution, Normal
 import math
 
 
-class TanhNormal(Distribution):
+class TanhNormal(Distribution, ABC):
     """
     Represent distribution of X where
         Z ~ N(mean, std)
@@ -53,7 +55,7 @@ class TanhNormal(Distribution):
         return torch.tan(self.normal_mean), self.normal_mean
 
 
-class FixedLimitedEntNormal(torch.distributions.Normal):
+class FixedLimitedEntNormal(torch.distributions.Normal, ABC):
     def log_probs(self, actions):
         return super().log_prob(actions).sum(-1, keepdim=True)
 
@@ -67,7 +69,7 @@ class FixedLimitedEntNormal(torch.distributions.Normal):
         return self.mean
 
 
-class FixedCategorical(torch.distributions.Categorical):
+class FixedCategorical(torch.distributions.Categorical, ABC):
     def sample(self, **kwargs):
         return super().sample(**kwargs).unsqueeze(-1)
 
@@ -96,7 +98,7 @@ class FixedNormal(torch.distributions.Normal):
         return self.mean
 
 
-class FixedBernoulli(torch.distributions.Bernoulli):
+class FixedBernoulli(torch.distributions.Bernoulli, ABC):
 
     def log_probs(self, actions):
         return super().log_prob(actions).view(actions.size(0), -1).sum(-1, keepdim=True)

@@ -1,4 +1,3 @@
-from typing import List
 import os
 
 import argparse
@@ -21,7 +20,7 @@ def flatten(d, parent_key='', sep='.'):
     return dict(items)
 
 
-def safe_eval(exp):
+def safe_eval(exp: str):
     try:
         return eval(exp)
     except (NameError, SyntaxError):
@@ -45,12 +44,11 @@ def deflatten_with_eval(d, sep='.'):
 
 class Config:
     def __new__(cls, config_paths='config.yaml'):
-        parser = argparse.ArgumentParser(description='Stochastic Lower Bound Optimization')
+        parser = argparse.ArgumentParser()
         parser.add_argument('-c', '--configs', type=str, help='configuration file (YAML)', nargs='+', action='append')
         parser.add_argument('-s', '--set', type=str, help='additional options', nargs='*', action='append')
 
         args, unknown = parser.parse_known_args()
-        config_dict = {}
         flattened_config_dict = {}
         overwritten_config_dict = {}
 
@@ -77,7 +75,7 @@ class Config:
             for instruction in sum(args.set, []):
                 key, value = instruction.split('=')
                 flattened_config_dict.update({key: safe_eval(value)})
-                # values set by args should be recorded
+                # values set by args should be recorded all
                 overwritten_config_dict.update({key: safe_eval(value)})
 
         config_dict = deflatten_with_eval(flattened_config_dict)
@@ -93,5 +91,3 @@ class Config:
             if key.find('.') >= 0:
                 logged_config_dict[key] = value
         return config, logged_config_dict
-
-

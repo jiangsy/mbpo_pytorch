@@ -31,7 +31,7 @@ for run, length in run_len.items():
             try:
                 print(f'{run} is {length} and was deleted')
                 shutil.rmtree(run)
-            except:
+            except OSError:
                 print(f"OS didn't let us delete {run}")
     else:
         print(f'{run} is {length} and is good')

@@ -87,6 +87,7 @@ class MBPO:
 
         num_epoch_after_update = 0
         num_updates = 0
+        epoch = 0
 
         self.dynamics.reset_best_snapshots()
 
@@ -130,9 +131,9 @@ class MBPO:
         self.dynamics.update_elite_indices(val_model_loss)
 
         if self.verbose > 0:
-            logger.log('[ Model Traning ] Converge at epoch {}'.format(epoch))
-            logger.log('[ Model Traning ] Load best state_dict from epoch {}'.format(best_epochs))
-            logger.log('[ Model Traning ] Validation Model loss of elite networks: {}'.
+            logger.log('[ Model Training ] Converge at epoch {}'.format(epoch))
+            logger.log('[ Model Training ] Load best state_dict from epoch {}'.format(best_epochs))
+            logger.log('[ Model Training ] Validation Model loss of elite networks: {}'.
                        format(val_model_loss.cpu().numpy()[self.dynamics.elite_indices]))
 
         return {'model_loss': model_loss_epoch, 'l2_loss': l2_loss_epoch}
@@ -162,7 +163,7 @@ class MBPO:
             policy_buffer.insert(states=states, actions=actions, masks=masks, rewards=rewards,
                                  next_states=next_states)
             num_total_samples += next_states.shape[0]
-            states = next_states[torch.where(masks > 0.5)[0], :]
+            states = next_states[torch.where(torch.gt(masks, 0.5))[0], :]
             if states.shape[0] == 0:
                 logger.warn('[ Model Rollout ] Breaking early: {}'.format(step))
                 break

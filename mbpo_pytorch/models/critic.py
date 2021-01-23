@@ -28,9 +28,9 @@ class QCritic(nn.Module, ABC):
 
         self.critic = MLP(state_dim + action_dim, 1, hidden_dims, **kwargs)
 
-        init_ = lambda m: init(m, fanin_init, lambda x: nn.init.constant_(x, init_b))
-        init_last_ = lambda m: init(m, lambda x: nn.init.uniform_(x, -init_w, init_w),
-                                       lambda x: nn.init.uniform_(x, -init_w, init_w))
+        def init_(m): init(m, fanin_init, lambda x: nn.init.constant_(x, init_b))
+        def init_last_(m): init(m, lambda x: nn.init.uniform_(x, -init_w, init_w),
+                                   lambda x: nn.init.uniform_(x, -init_w, init_w))
         self.critic.init(init_, init_last_)
 
     def forward(self, states, actions):

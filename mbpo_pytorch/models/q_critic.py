@@ -1,3 +1,5 @@
+from abc import ABC
+
 import torch
 import torch.nn as nn
 
@@ -5,7 +7,7 @@ from .utils import MLP, init
 from .initializer import fanin_init
 
 
-class QCritic(nn.Module):
+class QCritic(nn.Module, ABC):
     def __init__(self, state_dim, action_space, hidden_dims, activation='relu', last_activation='Identity',
                  init_w=3e-3, init_b=0.1, use_multihead_output=False):
         super(QCritic, self).__init__()
@@ -28,9 +30,9 @@ class QCritic(nn.Module):
                               activation=activation, last_activation=last_activation)
             self.forward = self._get_q_value_continuous
 
-        init_ = lambda m: init(m, fanin_init, lambda x: nn.init.constant_(x, init_b))
-        init_last_ = lambda m: init(m, lambda x: nn.init.uniform_(x, -init_w, init_w),
-                                       lambda x: nn.init.uniform_(x, -init_w, init_w))
+        def init_(m): init(m, fanin_init, lambda x: nn.init.constant_(x, init_b))
+        def init_last_(m): init(m, lambda x: nn.init.uniform_(x, -init_w, init_w),
+                                   lambda x: nn.init.uniform_(x, -init_w, init_w))
         self.critic.init(init_, init_last_)
 
     def _get_q_value_continuous(self, state, action):

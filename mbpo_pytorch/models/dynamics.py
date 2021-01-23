@@ -31,7 +31,7 @@ class RDynamics(BaseDynamics, ABC):
         self.diff_dynamics = MLP(state_dim + action_dim, output_state_dim
                                  + reward_dim, hidden_dims, activation='swish', **kwargs)
 
-        init_ = lambda m: init(m, truncated_norm_init, lambda x: nn.init.constant_(x, 0))
+        def init_(m): init(m, truncated_norm_init, lambda x: nn.init.constant_(x, 0))
         self.diff_dynamics.init(init_, init_)
 
     def forward(self, states, actions):
@@ -151,6 +151,7 @@ class EnsembleRDynamics(BaseDynamics, ABC):
             best_loss: Optional[float] = snapshot[0]
             improvement_ratio = ((best_loss - loss) / best_loss) if best_loss else 0.
             if (best_loss is None) or improvement_ratio > 0.01:
+                # noinspection PyTypeChecker
                 self.best_snapshots[idx] = (loss, epoch, self.networks[idx].state_dict())
                 updated = True
         return updated
