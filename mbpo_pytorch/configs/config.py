@@ -43,15 +43,6 @@ def deflatten_with_eval(d, sep='.'):
     return deflattend_d
 
 
-def change_dict_value_recursive(obj, key_sequence: List[str], value):
-    try:
-        for key in key_sequence[:-1]:
-            obj = obj[key]
-        obj[key_sequence[-1]] = value
-    except KeyError:
-        raise KeyError('Incorrect key sequences')
-
-
 class Config:
     def __new__(cls, config_paths='config.yaml'):
         parser = argparse.ArgumentParser(description='Stochastic Lower Bound Optimization')
@@ -77,16 +68,19 @@ class Config:
             with open(config_path, 'r', encoding='utf-8') as f:
                 new_config_dict = yaml.load(f, Loader=Loader)
                 flattened_new_config_dict = flatten(new_config_dict)
-                overwritten_config_dict.update({k: v for k, v in flattened_new_config_dict.items()
-                                                if k in flattened_config_dict.keys() & flattened_new_config_dict})
+                overwritten_config_dict.update(
+                    {k: v for k, v in flattened_new_config_dict.items()
+                     if (k in flattened_config_dict.keys() and v != flattened_config_dict[k])})
                 flattened_config_dict.update(flattened_new_config_dict)
-                config_dict = deflatten_with_eval(flattened_config_dict)
 
         if args.set:
             for instruction in sum(args.set, []):
                 key, value = instruction.split('=')
-                change_dict_value_recursive(config_dict, key.split('.'), safe_eval(value))
+                flattened_config_dict.update({key: safe_eval(value)})
+                # values set by args should be recorded
                 overwritten_config_dict.update({key: safe_eval(value)})
+
+        config_dict = deflatten_with_eval(flattened_config_dict)
 
         for key, value in overwritten_config_dict.items():
             logger.notice('Hyperparams {} has been overwritten to {}.'.format(key, value))
