@@ -62,6 +62,20 @@ class MBPO:
         inv_vars = torch.exp(-logvars)
 
         mse_losses = torch.mean(((means - targets) ** 2) * inv_vars * masks, dim=[-2, -1])
+
+        try:
+            if mse_losses.mean() > 0:
+                raise OverflowError
+        except OverflowError:
+            import traceback, sys, code
+            *_, tb = sys.exc_info()
+            traceback.print_exc()
+            last_frame = lambda tb: last_frame(tb.tb_next) if tb.tb_next else tb
+            frame = last_frame(tb).tb_frame
+            ns = dict(frame.f_globals)
+            ns.update(frame.f_locals)
+            code.interact(local=ns)
+
         if use_var_loss:
             var_losses = torch.mean(logvars * masks, dim=[-2, -1])
             model_losses = mse_losses + var_losses
