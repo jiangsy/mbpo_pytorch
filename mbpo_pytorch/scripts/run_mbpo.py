@@ -14,6 +14,7 @@ from mbpo_pytorch.models import Actor, QCritic, RunningNormalizer, EnsembleRDyna
 from mbpo_pytorch.storages import SimpleUniversalBuffer as Buffer, MixtureBuffer
 
 
+# noinspection DuplicatedCode
 def main():
     config, hparam_dict = Config(['mbpo.yaml', 'halfcheetah.yaml', 'priv.yaml'])
     set_seed(config.seed)
@@ -156,8 +157,6 @@ def main():
             real_masks = torch.tensor([[0.0] if done else [1.0] for done in real_dones], dtype=torch.float32)
             real_buffer.insert(states=real_states, actions=real_actions, rewards=real_rewards, masks=real_masks,
                                next_states=real_next_states)
-            state_normalizer.update(real_states)
-            action_normalizer.update(real_actions)
             real_states = real_next_states
             real_episode_rewards.extend([info['episode']['r'] for info in real_infos if 'episode' in info])
             real_episode_lengths.extend([info['episode']['l'] for info in real_infos if 'episode' in info])
