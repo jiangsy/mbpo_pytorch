@@ -130,9 +130,9 @@ class MBPO:
         self.dynamics.update_elite_indices(val_model_loss)
 
         if self.verbose > 0:
-            logger.log('[ Model Traning ] Converge at epoch {}'.format(epoch))
-            logger.log('[ Model Traning ] Load best state_dict from epoch {}'.format(best_epochs))
-            logger.log('[ Model Traning ] Validation Model loss of elite networks: {}'.
+            logger.log('[ Model Training ] Converge at epoch {}'.format(epoch))
+            logger.log('[ Model Training ] Load best state_dict from epoch {}'.format(best_epochs))
+            logger.log('[ Model Training ] Validation Model loss of elite networks: {}'.
                        format(val_model_loss.cpu().numpy()[self.dynamics.elite_indices]))
 
         return {'model_loss': model_loss_epoch, 'l2_loss': l2_loss_epoch}
@@ -150,7 +150,7 @@ class MBPO:
             logger.log('[ Model Rollout ] Max rollout length {} -> {} '.format(self.num_rollout_steps, y))
         self.num_rollout_steps = y
 
-    def collect_data(self, virtual_envs: VecVirtualEnv, policy_buffer: Buffer, initial_states: torch.Tensor, actor):
+    def generate_data(self, virtual_envs: VecVirtualEnv, policy_buffer: Buffer, initial_states: torch.Tensor, actor):
         states = initial_states
         batch_size = initial_states.shape[0]
         num_total_samples = 0

@@ -17,7 +17,7 @@ from mbpo_pytorch.storages import SimpleUniversalBuffer as Buffer, MixtureBuffer
 def main():
     config, hparam_dict = Config(['mbpo.yaml', 'halfcheetah.yaml', 'priv.yaml'])
     set_seed(config.seed)
-    commit_and_save(config.proj_dir, config.save_dir, False, False)
+    commit_and_save(config.proj_dir, config.save_dir, False)
 
     writer, log_dir, eval_log_dir, save_dir = init_logging(config, hparam_dict)
 
@@ -148,10 +148,11 @@ def main():
                 initial_states = next(real_buffer.get_batch_generator_inf(mb_config.rollout_batch_size))['states']
                 new_virtual_buffer_size = base_virtual_buffer_size * model.num_rollout_steps
                 virtual_buffer.resize(new_virtual_buffer_size)
-                model.collect_data(virt_envs, virtual_buffer, initial_states, actor)
+                model.generate_data(virt_envs, virtual_buffer, initial_states, actor)
 
             with torch.no_grad():
                 real_actions = actor.act(real_states)['actions']
+
             real_next_states, real_rewards, real_dones, real_infos = real_envs.step(real_actions)
             real_masks = torch.tensor([[0.0] if done else [1.0] for done in real_dones], dtype=torch.float32)
             real_buffer.insert(states=real_states, actions=real_actions, rewards=real_rewards, masks=real_masks,

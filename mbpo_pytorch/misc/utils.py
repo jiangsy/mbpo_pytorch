@@ -12,14 +12,12 @@ from mbpo_pytorch.misc import logger
 from mbpo_pytorch.thirdparty.summary_writer import FixedSummaryWriter as SummaryWriter
 
 
-def log_and_write(writer: SummaryWriter, log_infos: List, global_step: int):
+def log_and_write(writer: Optional[SummaryWriter], log_infos: List, global_step: int):
     for idx, (name, value) in enumerate(log_infos):
-        if logger is not None:
-            logger.logkv('{}.'.format(idx) + name.split('/')[-1], value)
-        if writer is not None and name.find('/') > -1:
+        logger.logkv('{}.'.format(idx) + name.split('/')[-1], value)
+        if writer and name.find('/') > -1:
             writer.add_scalar(name, value, global_step=global_step)
-    if logger is not None:
-        logger.dumpkvs()
+    logger.dumpkvs()
 
 
 def evaluate(actor, env_name, seed, num_episode, eval_log_dir,
@@ -68,14 +66,8 @@ def get_seed():
     return random.randint(0, 2 ** 32 - 1)
 
 
-def commit_and_save(proj_dir: str, save_dir: Optional[str] = None, auto_commit: bool = False, auto_save: bool = False):
+def commit_and_save(proj_dir: str, save_dir: Optional[str] = None, auto_save: bool = False):
     import shutil
-
-    # if auto_commit:
-    #     from git.repo import Repo
-    #     repo = Repo(proj_dir)
-    #     repo.git.stash('save')
-
     if save_dir and auto_save:
         shutil.copytree(proj_dir, save_dir + '/code', ignore=shutil.ignore_patterns('result', 'data', 'ref'))
 
