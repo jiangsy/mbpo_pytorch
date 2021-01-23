@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from itertools import count
 from operator import itemgetter
-from typing import TYPE_CHECKING, Dict, List
+from typing import Dict, List, TYPE_CHECKING
 
 import numpy as np
 import torch
