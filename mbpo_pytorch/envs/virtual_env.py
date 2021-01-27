@@ -51,7 +51,6 @@ class VecVirtualEnv(VecEnv, ABC):
             self.states = np.zeros([self.num_envs, self.observation_space.shape[0]], dtype=np.float32)
 
     def step_with_states(self, states: torch.Tensor, actions: torch.Tensor, **kwargs):
-
         with torch.no_grad():
             if self.use_predicted_reward:
                 next_states, rewards = itemgetter('next_states', 'rewards')(self.dynamics.predict(

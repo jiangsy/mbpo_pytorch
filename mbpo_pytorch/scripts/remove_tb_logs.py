@@ -4,8 +4,8 @@ from tensorboard.backend.event_processing.event_file_inspector import get_inspec
 
 
 parser = ArgumentParser('delete small runs')
-parser.add_argument('--logdir', type=str, default='/home/liuxh/Documents/slbo/result')
-parser.add_argument('--min_run_len', type=int, default=500)
+parser.add_argument('--logdir', type=str, default='/home/liuxh/Documents/mbpo_torch/result')
+parser.add_argument('--min_run_len', type=int, default=100)
 parser.add_argument('--list', action='store_true')
 args = parser.parse_args()
 
@@ -31,7 +31,7 @@ for run, length in run_len.items():
             try:
                 print(f'{run} is {length} and was deleted')
                 shutil.rmtree(run)
-            except:
+            except OSError:
                 print(f"OS didn't let us delete {run}")
     else:
         print(f'{run} is {length} and is good')

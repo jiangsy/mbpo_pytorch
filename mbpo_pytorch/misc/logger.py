@@ -476,9 +476,9 @@ def send_mail(message, level=INFO):
     message['Subject'] = Header(subject, 'utf-8')
 
     try:
-        smtpObj = smtplib.SMTP_SSL('smtp.exmail.qq.com:465')
-        smtpObj.login(mail_user, mail_pass)
-        smtpObj.sendmail(sender, receivers, message.as_string())
+        smtp_obj = smtplib.SMTP_SSL('smtp.exmail.qq.com:465')
+        smtp_obj.login(mail_user, mail_pass)
+        smtp_obj.sendmail(sender, receivers, message.as_string())
         LAST_EMAIL_TIME = cur_time
     except smtplib.SMTPException:
         pass

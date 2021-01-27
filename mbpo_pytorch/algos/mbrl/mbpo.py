@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from itertools import count
 from operator import itemgetter
-from typing import TYPE_CHECKING, Dict, List
+from typing import Dict, List, TYPE_CHECKING
 
 import numpy as np
 import torch
@@ -62,6 +62,7 @@ class MBPO:
         inv_vars = torch.exp(-logvars)
 
         mse_losses = torch.mean(((means - targets) ** 2) * inv_vars * masks, dim=[-2, -1])
+
         if use_var_loss:
             var_losses = torch.mean(logvars * masks, dim=[-2, -1])
             model_losses = mse_losses + var_losses
@@ -87,6 +88,7 @@ class MBPO:
 
         num_epoch_after_update = 0
         num_updates = 0
+        epoch = 0
 
         self.dynamics.reset_best_snapshots()
 
@@ -162,7 +164,7 @@ class MBPO:
             policy_buffer.insert(states=states, actions=actions, masks=masks, rewards=rewards,
                                  next_states=next_states)
             num_total_samples += next_states.shape[0]
-            states = next_states[torch.where(masks > 0.5)[0], :]
+            states = next_states[torch.where(torch.gt(masks, 0.5))[0], :]
             if states.shape[0] == 0:
                 logger.warn('[ Model Rollout ] Breaking early: {}'.format(step))
                 break

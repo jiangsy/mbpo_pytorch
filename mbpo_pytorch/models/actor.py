@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from abc import ABC
 from typing import List, Optional
 
 from .initializer import fanin_init
@@ -31,7 +30,7 @@ class Actor(nn.Module, ABC):
         self.actor_layer = TanhGaussainActorLayer(hidden_dims[-1], action_space.shape[0],
                                                   use_state_dependent_std)
 
-        init_ = lambda m: init(m, fanin_init, lambda x: nn.init.constant_(x, 0))
+        def init_(m): init(m, fanin_init, lambda x: nn.init.constant_(x, 0))
         self.actor_feature.init(init_, init_)
 
     def act(self, state, deterministic=False, reparameterize=False):

@@ -65,8 +65,8 @@ def main():
                 mf_config.num_grad_steps, config.env.gamma, 1.0, mf_config.actor_lr, mf_config.critic_lr,
                 mf_config.soft_target_tau, target_entropy=target_entropy)
 
-    virt_envs = make_vec_virtual_envs(config.env.env_name, dynamics, get_seed(), 0, config.env.gamma, device,
-                                      use_predicted_reward=True)
+    virtual_envs = make_vec_virtual_envs(config.env.env_name, dynamics, get_seed(), 0, config.env.gamma, device,
+                                         use_predicted_reward=True)
 
     base_virtual_buffer_size = mb_config.rollout_batch_size * config.env.max_episode_steps * \
                                mb_config.num_model_retain_epochs // mb_config.model_update_interval
@@ -148,7 +148,8 @@ def main():
                 initial_states = next(real_buffer.get_batch_generator_inf(mb_config.rollout_batch_size))['states']
                 new_virtual_buffer_size = base_virtual_buffer_size * model.num_rollout_steps
                 virtual_buffer.resize(new_virtual_buffer_size)
-                model.generate_data(virt_envs, virtual_buffer, initial_states, actor)
+                virtual_buffer.clear()
+                model.generate_data(virtual_envs, virtual_buffer, initial_states, actor)
 
             with torch.no_grad():
                 real_actions = actor.act(real_states)['actions']
@@ -194,7 +195,7 @@ def main():
             real_buffer.save(save_dir + '/real_buffer.pt')
 
     real_envs.close()
-    virt_envs.close()
+    virtual_envs.close()
     writer.close()
 
 
