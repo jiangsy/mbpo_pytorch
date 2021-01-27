@@ -66,8 +66,8 @@ class EnsembleRDynamics(BaseDynamics, ABC):
         self.networks = nn.ModuleList([RDynamics(state_dim, action_dim, 2 * reward_dim, hidden_dims, 2 * state_dim)
                                        for _ in range(num_networks)])
 
-        self.max_state_logvar = nn.Parameter(torch.ones([1, state_dim]) / 2.)
-        self.min_state_logvar = nn.Parameter(-torch.ones([1, state_dim]) * 10.)
+        self.max_diff_state_logvar = nn.Parameter(torch.ones([1, state_dim]) / 2.)
+        self.min_diff_state_logvar = nn.Parameter(-torch.ones([1, state_dim]) * 10.)
         self.max_reward_logvar = nn.Parameter(torch.ones([1, reward_dim]) / 2.)
         self.min_reward_logvar = nn.Parameter(-torch.ones([1, reward_dim]) * 10.)
 
@@ -84,9 +84,7 @@ class EnsembleRDynamics(BaseDynamics, ABC):
     def forward(self, states, actions) -> Dict[str, torch.Tensor]:
 
         states, actions = self.state_normalizer(states), self.action_normalizer(actions)
-
         outputs = [network(states, actions) for network in self.networks]
-
         outputs = {k: [dic[k] for dic in outputs] for k in outputs[0]}
 
         # diff_states, rewards is [num_networks, batch_size, *]
@@ -96,10 +94,10 @@ class EnsembleRDynamics(BaseDynamics, ABC):
         factored_reward_means, factored_reward_logvars = \
             rewards[..., :self.reward_dim], rewards[..., self.reward_dim:]
 
-        factored_diff_state_logvars = self.max_state_logvar -\
-                                      softplus(self.max_state_logvar - factored_diff_state_logvars)
-        factored_diff_state_logvars = self.min_state_logvar +\
-                                      softplus(factored_diff_state_logvars - self.min_state_logvar)
+        factored_diff_state_logvars = self.max_diff_state_logvar - \
+                                      softplus(self.max_diff_state_logvar - factored_diff_state_logvars)
+        factored_diff_state_logvars = self.min_diff_state_logvar + \
+                                      softplus(factored_diff_state_logvars - self.min_diff_state_logvar)
         factored_reward_logvars = self.max_reward_logvar - softplus(self.max_reward_logvar - factored_reward_logvars)
         factored_reward_logvars = self.min_reward_logvar + softplus(factored_reward_logvars - self.min_reward_logvar)
 
