@@ -100,8 +100,8 @@ class MBPO:
                 train_model_loss, train_l2_loss = self.compute_loss(samples, True, True)
                 train_model_loss, train_l2_loss = train_model_loss.sum(), train_l2_loss.sum()
                 train_model_loss += \
-                    0.01 * (torch.sum(self.dynamics.max_state_logvar) + torch.sum(self.dynamics.max_reward_logvar) -
-                            torch.sum(self.dynamics.min_state_logvar) - torch.sum(self.dynamics.min_reward_logvar))
+                    0.01 * (torch.sum(self.dynamics.max_diff_state_logvar) + torch.sum(self.dynamics.max_reward_logvar) -
+                            torch.sum(self.dynamics.min_diff_state_logvar) - torch.sum(self.dynamics.min_reward_logvar))
 
                 model_loss_epoch += train_model_loss.item()
                 l2_loss_epoch += train_l2_loss.item()
