@@ -15,10 +15,8 @@ log_email: False
 debug: False
 
 env:
-    env_name: 'OriginalHalfCheetah'
     num_real_envs: 1
     gamma: 0.99
-    max_episode_steps: 1000
 
 sac:
     actor_hidden_dims: [256, 256]
