@@ -1,10 +1,10 @@
 env:
-    env_name: 'OriginalHalfCheetah'
+    env_name: 'OriginalWalker'
     max_episode_steps: 1000
 
 sac:
     target_entropy: -3
-    num_grad_steps: 40
+    num_grad_steps: 20
 
 mbpo:
     rollout_schedule: [ 20, 150, 1, 1 ]

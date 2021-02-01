@@ -1,0 +1,10 @@
+env:
+    env_name: 'OriginalAnt'
+    max_episode_steps: 1000
+
+sac:
+    target_entropy: -4
+    num_grad_steps: 20
+
+mbpo:
+    rollout_schedule: [ 20, 100, 1, 25 ]

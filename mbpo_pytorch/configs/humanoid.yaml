@@ -1,0 +1,14 @@
+env:
+    env_name: 'OriginalHumanoid'
+    max_episode_steps: 1000
+
+sac:
+    target_entropy: -2
+    num_grad_steps: 40
+
+mbpo:
+    rollout_schedule: [ 20, 300, 1, 15 ]
+    dynamics_hidden_dims: [400, 400, 400, 400]
+    num_model_retain_epochs: 5
+    model_update_interval: 1000
+

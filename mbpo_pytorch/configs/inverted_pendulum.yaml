@@ -1,0 +1,14 @@
+env:
+    env_name: 'OriginalInvertedPendulum'
+    max_episode_steps: 250
+
+ac:
+    target_entropy: -0.05
+    num_grad_steps: 10
+
+mbpo:
+    rollout_schedule: [ 1, 15, 1, 1 ]
+    num_total_epochs: 80
+    num_warmup_samples: 500
+
+
