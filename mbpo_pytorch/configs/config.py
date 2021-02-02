@@ -45,8 +45,8 @@ def deflatten_with_eval(d, sep='.'):
 class Config:
     def __new__(cls, config_paths='config.yaml'):
         parser = argparse.ArgumentParser()
-        parser.add_argument('-c', '--configs', type=str, help='configuration file (YAML)', nargs='+', action='append')
-        parser.add_argument('-s', '--set', type=str, help='additional options', nargs='*', action='append')
+        parser.add_argument('--configs', nargs='+', default=[])
+        parser.add_argument('--set', type=str, nargs='*', action='append')
 
         args, unknown = parser.parse_known_args()
         flattened_config_dict = {}
@@ -59,9 +59,9 @@ class Config:
             config_paths = [config_paths]
 
         for config_path in config_paths:
-            logger.info('Loading configs from {}.'.format(config_path))
             if not config_path.startswith('/'):
                 config_path = os.path.join(os.path.dirname(__file__), config_path)
+            logger.info('Loading configs from {}.'.format(config_path))
 
             with open(config_path, 'r', encoding='utf-8') as f:
                 new_config_dict = yaml.load(f, Loader=Loader)
