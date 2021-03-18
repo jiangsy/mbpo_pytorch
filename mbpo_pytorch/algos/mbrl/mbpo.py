@@ -59,14 +59,13 @@ class MBPO:
         targets = torch.cat([next_states - states, rewards], dim=-1)
         targets, masks = targets.repeat(means.shape[0], 1, 1), masks.repeat(means.shape[0], 1, 1)
 
-        inv_vars = torch.exp(-logvars)
-
-        mse_losses = torch.mean(((means - targets) ** 2) * inv_vars * masks, dim=[-2, -1])
-
         if use_var_loss:
+            inv_vars = torch.exp(-logvars)
+            mse_losses = torch.mean(((means - targets) ** 2) * inv_vars * masks, dim=[-2, -1])
             var_losses = torch.mean(logvars * masks, dim=[-2, -1])
             model_losses = mse_losses + var_losses
         else:
+            mse_losses = torch.mean(((means - targets) ** 2) * masks, dim=[-2, -1])
             model_losses = mse_losses
 
         if use_l2_loss:
