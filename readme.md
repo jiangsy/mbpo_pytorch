@@ -1,6 +1,9 @@
 # MBPO PyTorch
 A PyTorch reimplementation of MBPO (When to trust your model: model-based policy optimization)
 
+# <font color=#A52A2A >Deprecated Warning</font>
+The owner of this repo has graduated and this repo is no longer maintained. Please refer to this new [MBPO](https://github.com/x35f/model_based_rl) Pytorch re-implementation, which is a submodule of the [Unstable Baselines](https://github.com/x35f/unstable_Baselines) project maintained by researchers from the same [lab](http://www.lamda.nju.edu.cn/MainPage.ashx). This new MBPO re-implementation strictly follows the original TF implementation and has been tested on several MuJoCo tasks.
+
 # Dependency
 
 Please refer to ./requirements.txt.
